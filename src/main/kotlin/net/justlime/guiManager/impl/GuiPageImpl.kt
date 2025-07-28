@@ -1,6 +1,7 @@
 package net.justlime.guiManager.impl
 
 import net.justlime.guiManager.handle.GUIPage
+import net.justlime.guiManager.handle.GuiImpl
 import net.justlime.guiManager.models.GuiItem
 import net.justlime.guiManager.plugin
 import org.bukkit.Bukkit
@@ -9,11 +10,10 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
-import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 
-class GuiPageImpl(holder: InventoryHolder, title: String, rows: Int, contents: Array<ItemStack>) : GUIPage {
-    private var inventory = Bukkit.createInventory(holder, rows * 9, title)
+class GuiPageImpl(mainGui: GuiImpl, title: String, rows: Int, contents: Array<ItemStack>) : GUIPage {
+    private var inventory = Bukkit.createInventory(mainGui, rows * 9, title)
     private val openHandlers = mutableListOf<(InventoryOpenEvent) -> Unit>()
     private val clickHandlers = mutableListOf<(InventoryClickEvent) -> Unit>()
     private val closeHandlers = mutableListOf<(InventoryCloseEvent) -> Unit>()
@@ -24,35 +24,57 @@ class GuiPageImpl(holder: InventoryHolder, title: String, rows: Int, contents: A
     }
 
     init {
-        // Copy existing contents first
-        val currentContents = contents.toMutableList()
+        val oldContents = contents.toList()
+        val newContents = oldContents.toMutableList()
+        val oldToNewMap = mutableMapOf<Int, Int>()
 
-        // Remove empty rows from the middle if necessary
         val maxSlots = rows * 9
-        if (currentContents.size > maxSlots) {
-            // Trim rows starting from the top (keep bottom rows with items)
-            while (currentContents.size > maxSlots) {
-                // Check if there is an empty row (completely AIR)
-                var rowRemoved = false
-                for (row in 1 until (currentContents.size / 9) - 1) { // Skip first and last row
-                    val start = row * 9
-                    val end = start + 9
-                    if ((start until end).all { currentContents[it] == null || currentContents[it].type == Material.AIR }) {
-                        // Remove this empty row
-                        repeat(9) { currentContents.removeAt(start) }
-                        rowRemoved = true
-                        break
-                    }
+        var rowsToRemove = (oldContents.size / 9) - rows
+
+        if (rowsToRemove > 0) {
+            var removedCount = 0
+            var row = 1 // start from second row (keep first and last)
+            while (removedCount < rowsToRemove && row < (newContents.size / 9) - 1) {
+                val start = row * 9
+                val end = start + 9
+                val isEmptyRow = (start until end).all { newContents[it] == null || newContents[it].type == Material.AIR }
+
+                if (isEmptyRow) {
+                    repeat(9) { newContents.removeAt(start) }
+                    removedCount++
+                } else {
+                    row++
                 }
-                // If no empty row was found, break to avoid infinite loop
-                if (!rowRemoved) break
             }
         }
 
-        // Now copy trimmed contents into the inventory
-        for (i in currentContents.indices) {
+        // Now trim if still too large (cut extra from top but keep last row)
+        if (newContents.size > maxSlots) {
+            while (newContents.size > maxSlots) {
+                newContents.removeAt(0)
+            }
+        }
+
+        // Build mapping (old slot -> new slot)
+        var newIndex = 0
+        for ((oldIndex, item) in oldContents.withIndex()) {
+            if (newIndex < newContents.size && newContents[newIndex] == item) {
+                oldToNewMap[oldIndex] = newIndex
+                newIndex++
+            }
+        }
+
+        // Fill inventory
+        for (i in newContents.indices) {
             if (i < inventory.size) {
-                inventory.setItem(i, currentContents[i])
+                inventory.setItem(i, newContents[i])
+            }
+        }
+
+        // Remap handlers
+        oldToNewMap.forEach { (oldSlot, newSlot) ->
+            mainGui.itemClickHandlers[oldSlot]?.let { handler ->
+                itemClickHandlers[newSlot] = handler
             }
         }
     }

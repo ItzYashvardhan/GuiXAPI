@@ -16,10 +16,10 @@ class GuiImpl(setting: GUISetting) : GUI {
     private val pages = mutableMapOf<Int, GUIPage>()
     private val inventory: Inventory = Bukkit.createInventory(this, setting.rows * 9, setting.title)
 
-    private val clickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
-    private val openHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
-    private val closeHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
-    private val itemClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
+    val clickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
+    val openHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
+    val closeHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
+    val itemClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
 
     override fun getInventory(): Inventory = inventory
     override fun createPage(setting: GUISetting): GUIPage {

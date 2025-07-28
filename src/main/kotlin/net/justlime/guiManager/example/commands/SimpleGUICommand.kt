@@ -133,6 +133,13 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
             sender.sendMessage("open 48")
             pagerGui.openPage(sender, 1)
         }
+
+        val home = ItemStack(Material.ENDER_PEARL).toGuiItem()
+        pagerGui.setItem(49,home){
+            sender.sendMessage("open 49")
+            sender.openInventory(pagerGui.inventory)
+        }
+
         pagerGui.setItem(50, prevItem) { event ->
             sender.sendMessage("open 50")
             pagerGui.openPage(sender, 2)

@@ -1,6 +1,5 @@
 package net.justlime.guiManager.handle
 
-import net.justlime.guiManager.impl.GuiPageImpl
 import net.justlime.guiManager.models.GuiItem
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
