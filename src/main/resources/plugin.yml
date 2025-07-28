@@ -1,0 +1,13 @@
+name: GuiManager
+version: '1.0'
+main: net.justlime.guiManager.GUIManager
+api-version: '1.21'
+load: STARTUP
+authors: [ItzJustLime]
+description: Easy  Manager API for GUI
+website: https://discord.gg/rVsUJ4keZN
+
+commands:
+  simplegui:
+    description: Opens a simple GUI.
+    usage: /simplegui
