@@ -1,6 +1,3 @@
-
-//Write how to create gui
-
 # GuiManager
 
 GuiManager is a powerful and flexible library for creating and managing in-game GUIs (Graphical User Interfaces) in Minecraft Bukkit/Spigot plugins. It simplifies the process of building interactive inventories, handling clicks, and managing multiple pages.
