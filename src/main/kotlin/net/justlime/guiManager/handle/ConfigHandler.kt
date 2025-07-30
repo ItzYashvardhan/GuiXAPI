@@ -2,7 +2,6 @@ package net.justlime.guiManager.handle
 
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.models.GuiItem
-import net.justlime.guiManager.plugin
 import net.justlime.guiManager.utilities.toGuiItem
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -30,8 +29,6 @@ interface ConfigHandler {
             val customModelData = if (section.contains("customModelData")) section.getInt("customModelData") else null
             val amount = section.getInt("amount", 1)
             val skullTexture = section.getString("skullTexture")
-            plugin.logger.info(displayName)
-
             return GuiItem(material, displayName, amount, lore, glow, flags, customModelData, skullTexture)
         }
 

@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     id("com.gradleup.shadow") version "8.3.0"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
     id("com.github.ben-manes.versions") version("0.51.0")
 }
 
@@ -24,17 +23,12 @@ repositories {
 dependencies {
     compileOnly(libs.spigot)
     compileOnly(libs.authlib)
-    implementation(libs.kotlin)
+    compileOnly(libs.kotlin)
 
 
     compileOnly(libs.annotation)
 }
 
-tasks {
-  runServer {
-    minecraftVersion("1.21")
-  }
-}
 
 val targetJavaVersion = 8
 kotlin {
@@ -60,15 +54,6 @@ tasks.register<Copy>("shadowJarCopy") {
     description = "Copy shadowJar (non-obfuscated) jar to local test server"
     dependsOn("shadowJar")
     from(tasks.shadowJar.get().outputs.files.singleFile)
-    into("E:/Minecraft/servers/PaperMC-1.21.4/plugins")
-}
-
-// === PROGUARD COPY TASK ===
-tasks.register<Copy>("obfCopy") {
-    group = "build"
-    description = "Copy obfuscated jar to local test server"
-    dependsOn("proguardJar")
-    from("$buildDir/libs/${project.name}-${project.version}-obf.jar")
     into("E:/Minecraft/servers/PaperMC-1.21.4/plugins")
 }
 

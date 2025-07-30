@@ -1,10 +1,8 @@
 package net.justlime.guiManager.impl
 
-import com.google.common.collect.Multimaps.index
 import net.justlime.guiManager.handle.GUIPage
 import net.justlime.guiManager.handle.GuiImpl
 import net.justlime.guiManager.models.GuiItem
-import net.justlime.guiManager.plugin
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -65,7 +63,6 @@ class GuiPageImpl(val mainGui: GuiImpl,val title: String, val rows: Int) : GUIPa
     override fun onClose(handler: (InventoryCloseEvent) -> Unit) = closeHandlers.add(handler)
 
     override fun handleClick(event: InventoryClickEvent) {
-        plugin.logger.info("Click event ${event.whoClicked}")
         val slot = event.slot
         itemClickHandlers[slot]?.invoke(event) // Call per-item handler if exists
         clickHandlers.forEach { it.invoke(event) } // Call global handlers
@@ -121,9 +118,7 @@ class GuiPageImpl(val mainGui: GuiImpl,val title: String, val rows: Int) : GUIPa
             if (item != null && item.type != Material.AIR) {
                 return false
             }
-            plugin.logger.info("Item at ${start+i}: ${item?.type}")
         }
-        plugin.logger.info("Row $rowIndex is empty")
         return true
     }
 

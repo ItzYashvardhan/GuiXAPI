@@ -1,6 +1,5 @@
 package net.justlime.guiManager.handle
 
-import net.justlime.guiManager.impl.GuiPageImpl
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.models.GuiItem
 import org.bukkit.entity.Player

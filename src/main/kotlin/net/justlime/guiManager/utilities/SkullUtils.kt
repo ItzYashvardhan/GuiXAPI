@@ -11,7 +11,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
-import net.justlime.guiManager.plugin
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -139,20 +138,14 @@ object SkullUtils {
             val profileField: Field = meta!!.javaClass.getDeclaredField("profile")
             profileField.setAccessible(true)
             profile = profileField.get(meta) as GameProfile
-        } catch (_: NoSuchFieldException) {
-            plugin.logger.info(
-                "Failed to get base64 texture url from head item",
-            )
+        } catch (e: NoSuchFieldException) {
+            e.printStackTrace()
             return null
-        } catch (_: IllegalArgumentException) {
-            plugin.logger.info(
-                "Failed to get base64 texture url from head item",
-            )
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
             return null
-        } catch (_: IllegalAccessException) {
-            plugin.logger.info(
-                "Failed to get base64 texture url from head item",
-            )
+        } catch (e: IllegalAccessException) {
+            e.printStackTrace()
             return null
         }
 
@@ -238,7 +231,7 @@ object SkullUtils {
         try {
             profile.textures.skin = URL(skinUrl)
         } catch (e: MalformedURLException) {
-            plugin.logger.warning("Invalid texture URL: $skinUrl")
+            e.printStackTrace()
         }
         return profile
     }
@@ -270,7 +263,6 @@ object SkullUtils {
         val skin = textures["SKIN"]?.asJsonObject ?: return null
         return skin["url"]?.asString
     }
-
 
     fun getHead(): ItemStack {
         return playerHead

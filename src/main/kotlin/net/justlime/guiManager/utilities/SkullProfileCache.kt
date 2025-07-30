@@ -3,7 +3,7 @@ package net.justlime.guiManager.utilities
 import org.bukkit.Bukkit
 import org.bukkit.profile.PlayerProfile
 import java.net.URL
-import java.util.UUID
+import java.util.*
 
 object SkullProfileCache {
     private val cache = mutableMapOf<String, PlayerProfile>()
