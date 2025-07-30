@@ -21,4 +21,6 @@ interface GUIPage {
     fun handleClick(event: InventoryClickEvent)
     fun handleOpen(event: InventoryOpenEvent)
     fun handleClose(event: InventoryCloseEvent)
+
+    fun inventoryTrim()
 }
