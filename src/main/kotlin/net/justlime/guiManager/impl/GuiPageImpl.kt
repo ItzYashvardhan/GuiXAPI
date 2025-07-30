@@ -1,5 +1,6 @@
 package net.justlime.guiManager.impl
 
+import com.google.common.collect.Multimaps.index
 import net.justlime.guiManager.handle.GUIPage
 import net.justlime.guiManager.handle.GuiImpl
 import net.justlime.guiManager.models.GuiItem
@@ -12,7 +13,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
-class GuiPageImpl(mainGui: GuiImpl, title: String, rows: Int, contents: Array<ItemStack>) : GUIPage {
+class GuiPageImpl(val mainGui: GuiImpl,val title: String, val rows: Int) : GUIPage {
     private var inventory = Bukkit.createInventory(mainGui, rows * 9, title)
     private val openHandlers = mutableListOf<(InventoryOpenEvent) -> Unit>()
     private val clickHandlers = mutableListOf<(InventoryClickEvent) -> Unit>()
@@ -23,67 +24,7 @@ class GuiPageImpl(mainGui: GuiImpl, title: String, rows: Int, contents: Array<It
         return inventory
     }
 
-    init {
-        val oldContents = contents.toList()
-        val newContents = oldContents.toMutableList()
-        val oldToNewMap = mutableMapOf<Int, Int>()
-
-        val maxSlots = rows * 9
-        var rowsToRemove = (oldContents.size / 9) - rows
-
-        if (rowsToRemove > 0) {
-            var removedCount = 0
-            var row = 1 // start from second row (keep first and last)
-            while (removedCount < rowsToRemove && row < (newContents.size / 9) - 1) {
-                val start = row * 9
-                val end = start + 9
-                val isEmptyRow = (start until end).all { newContents[it] == null || newContents[it].type == Material.AIR }
-
-                if (isEmptyRow) {
-                    repeat(9) { newContents.removeAt(start) }
-                    removedCount++
-                } else {
-                    row++
-                }
-            }
-        }
-
-        // Now trim if still too large (cut extra from top but keep last row)
-        if (newContents.size > maxSlots) {
-            while (newContents.size > maxSlots) {
-                newContents.removeAt(0)
-            }
-        }
-
-        // Build mapping (old slot -> new slot)
-        var newIndex = 0
-        for ((oldIndex, item) in oldContents.withIndex()) {
-            if (newIndex < newContents.size && newContents[newIndex] == item) {
-                oldToNewMap[oldIndex] = newIndex
-                newIndex++
-            }
-        }
-
-        // Fill inventory
-        for (i in newContents.indices) {
-            if (i < inventory.size) {
-                inventory.setItem(i, newContents[i])
-            }
-        }
-
-        // Remap handlers
-        oldToNewMap.forEach { (oldSlot, newSlot) ->
-            mainGui.itemClickHandlers[oldSlot]?.let { handler ->
-                itemClickHandlers[newSlot] = handler
-            }
-        }
-    }
-
-
-
-
     override fun addItem(item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)?): GUIPage {
-
         val slot = inventory.firstEmpty()
         if (slot != -1) {
             inventory.setItem(slot, item.toItemStack())
@@ -107,7 +48,7 @@ class GuiPageImpl(mainGui: GuiImpl, title: String, rows: Int, contents: Array<It
     }
 
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)?): GUIPage {
-        if (index >= inventory.size) {
+        if (index < inventory.size) {
             inventory.setItem(index, item.toItemStack())
 
             if (onClick != null) {
@@ -137,4 +78,53 @@ class GuiPageImpl(mainGui: GuiImpl, title: String, rows: Int, contents: Array<It
     override fun handleClose(event: InventoryCloseEvent) {
         closeHandlers.forEach { it.invoke(event) }
     }
+
+    override fun inventoryTrim() {
+        val mainContents = mainGui.inventory.contents
+        val totalRows = mainContents.size / 9
+
+        // Find all non-empty row indexes
+        val nonEmptyRowIndices = (0 until totalRows).filter { !isRowEmpty(mainContents, it) }
+
+        // Determine the number of rows to keep (at most `rows` from bottom)
+        val rowsToKeep = nonEmptyRowIndices.takeLast(maxOf(rows, nonEmptyRowIndices.size))
+
+
+        // Recreate inventory with only the visible rows
+        val newInventory = Bukkit.createInventory(mainGui, rowsToKeep.size * 9, title)
+        inventory.contents.forEachIndexed {index, stack ->
+            if(stack!=null) newInventory.setItem(index, stack)
+        }
+        itemClickHandlers.clear()
+
+        // Copy items and handlers for the kept rows
+        rowsToKeep.forEachIndexed { index, rowIndex ->
+            val start = rowIndex * 9
+            val destStart = index * 9
+            for (i in 0 until 9) {
+                val sourceSlot = start + i
+                val destSlot = destStart + i
+
+                val item = mainContents.getOrNull(sourceSlot)
+                inventory.setItem(destSlot, item)
+
+                mainGui.itemClickHandlers[sourceSlot]?.let { handler ->
+                    itemClickHandlers[destSlot] = handler
+                }
+            }
+        }
+    }
+    private fun isRowEmpty(contents: Array<ItemStack?>, rowIndex: Int): Boolean {
+        val start = if(rowIndex==0) 0 else (rowIndex * 9)
+        for (i in 0 until 9) {
+            val item = contents.getOrNull(start+i)
+            if (item != null && item.type != Material.AIR) {
+                return false
+            }
+            plugin.logger.info("Item at ${start+i}: ${item?.type}")
+        }
+        plugin.logger.info("Row $rowIndex is empty")
+        return true
+    }
+
 }

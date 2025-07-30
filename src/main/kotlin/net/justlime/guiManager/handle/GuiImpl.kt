@@ -3,9 +3,8 @@ package net.justlime.guiManager.handle
 import net.justlime.guiManager.impl.GuiPageImpl
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.models.GuiItem
-import net.justlime.guiManager.plugin
+import net.justlime.guiManager.utilities.setItem
 import org.bukkit.Bukkit
-import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -23,7 +22,9 @@ class GuiImpl(setting: GUISetting) : GUI {
 
     override fun getInventory(): Inventory = inventory
     override fun createPage(setting: GUISetting): GUIPage {
-        return GuiPageImpl(this, setting.title, setting.rows, inventory.contents)
+        val impl = GuiPageImpl(this, setting.title, setting.rows)
+        impl.inventoryTrim()
+        return impl
     }
 
     override fun get(index: Int): GUIPage? {
@@ -31,7 +32,7 @@ class GuiImpl(setting: GUISetting) : GUI {
     }
 
     override fun set(index: Int, setting: GUISetting): GUIPage {
-        pages[index] = GuiPageImpl(this, setting.title, setting.rows, inventory.contents)
+        pages[index] = GuiPageImpl(this, setting.title, setting.rows)
         return pages[index]!!
     }
 
@@ -79,24 +80,18 @@ class GuiImpl(setting: GUISetting) : GUI {
     }
 
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)?): GUI {
-        inventory.setItem(index, item.toItemStack())
+        inventory.setItem(index, item)
         if (onClick != null) {
             itemClickHandlers[index] = onClick
         } else {
             itemClickHandlers.remove(index)
         }
-
-        //Add Item to all GUI Pages
-        plugin.logger.info("Setting Item1")
-        pages.forEach {
-            if (it.value.getInventory().size <= index) {
-                val pageItem = it.value.getInventory().getItem(index)
-                if (pageItem == null) {
-                    it.value.setItem(index, item, onClick)
-                }
+        pages.forEach { num, page ->
+            page.getInventory().setItem(index, item)
+            if (inventory.size > page.getInventory().size) {
             }
         }
-        plugin.logger.info("Setting Item2")
+
         return this
     }
 
