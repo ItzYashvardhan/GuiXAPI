@@ -3,6 +3,7 @@ package net.justlime.guiManager.models
 import net.justlime.guiManager.utilities.SkullProfileCache
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
@@ -17,7 +18,8 @@ data class GuiItem(
     var flags: Collection<ItemFlag?> = emptyList(),
     var customModelData: Int? = null,
     var skullTexture: String? = null,
-    val slot: Int = 0,
+    val slot: MutableList<Int> = mutableListOf(),
+    var onClickBlock: (InventoryClickEvent) -> Unit = {}
 ) {
 
     companion object {

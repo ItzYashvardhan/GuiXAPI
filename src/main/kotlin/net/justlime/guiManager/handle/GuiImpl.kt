@@ -1,138 +1,80 @@
 package net.justlime.guiManager.handle
 
-import net.justlime.guiManager.impl.GuiPageImpl
 import net.justlime.guiManager.models.GUISetting
-import net.justlime.guiManager.models.GuiItem
-import net.justlime.guiManager.utilities.setItem
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
+import java.util.*
 
-class GuiImpl(setting: GUISetting) : GUI {
-    private val pages = mutableMapOf<Int, GUIPage>()
+class GuiImpl(private val setting: GUISetting) : GUI {
+
     private val inventory: Inventory = Bukkit.createInventory(this, setting.rows * 9, setting.title)
 
+    // === Global handlers ===
     val clickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
     val openHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
     val closeHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
+
     val itemClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
 
+    // === Page-specific handlers ===
+    val pageClickHandler = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
+    val pageOpenHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
+    val pageCloseHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
+    val pageItemClickHandlers = mutableMapOf<Int, MutableMap<Int, (InventoryClickEvent) -> Unit>>()
+
+    // === Track current page per player ===
+    private val currentPages = mutableMapOf<String, Int>()
+
     override fun getInventory(): Inventory = inventory
-    override fun createPage(setting: GUISetting): GUIPage {
-        val impl = GuiPageImpl(this, setting.title, setting.rows)
-        impl.inventoryTrim()
-        return impl
-    }
 
-    override fun get(index: Int): GUIPage? {
-        return pages[index]
-    }
-
-    override fun set(index: Int, setting: GUISetting): GUIPage {
-        pages[index] = GuiPageImpl(this, setting.title, setting.rows)
-        return pages[index]!!
-    }
-
-    override fun set(index: Int, guiPage: GUIPage): GUIPage {
-        pages[index] = guiPage
-        return pages[index]!!
-    }
-
-    override fun minusAssign(index: Int) {
-        pages.remove(index)
-    }
-
-    override fun openPage(player: Player, index: Int) {
-        if (index <= pages.size && pages[index] != null) {
-            pages[index]?.let { player.openInventory(it.getInventory()) }
-        } else {
-            player.sendMessage("Page $index does not exist.")
-        }
-    }
-
-    override fun addItem(item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)?): GUI {
-
-        //Add Item to all GUI Pages
-        val slot = inventory.firstEmpty()
-        if (slot != -1) {
-            inventory.setItem(slot, item.toItemStack())
-            if (onClick != null) {
-                itemClickHandlers[slot] = onClick
-            }
-        }
-        pages.forEach {
-            val pageItem = it.value.getInventory().getItem(slot)
-            if (pageItem == null) it.value.addItem(item, onClick)
-        }
+    override fun load(inventory: Inventory): GUI {
+        this.inventory.contents = inventory.contents
         return this
     }
 
-    override fun addItems(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)?): GUI {
-        items.forEach { guiItem ->
-            addItem(guiItem) { event ->
-                onClick?.invoke(guiItem, event)
-            }
-        }
-        return this
+    fun setCurrentPage(player: Player, pageId: Int) {
+        currentPages[player.name] = pageId
     }
 
-    override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)?): GUI {
-        inventory.setItem(index, item)
-        if (onClick != null) {
-            itemClickHandlers[index] = onClick
-        } else {
-            itemClickHandlers.remove(index)
-        }
-        pages.forEach { num, page ->
-            page.getInventory().setItem(index, item)
-            if (inventory.size > page.getInventory().size) {
-            }
-        }
-
-        return this
-    }
-
-    override fun removeItem(item: GuiItem): GUI {
-        inventory.removeItem(item.toItemStack())
-        return this
-    }
-
-    override fun onClick(handler: (InventoryClickEvent) -> Unit) {
-        clickHandlers[-1] = handler
-    }
-
-    override fun onOpen(handler: (InventoryOpenEvent) -> Unit) {
-        openHandlers[-1] = handler
-
-    }
-
-    override fun onClose(handler: (InventoryCloseEvent) -> Unit) {
-        closeHandlers[-1] = handler
+    fun getCurrentPage(player: Player): Int {
+        return currentPages[player.name] ?: 0
     }
 
     override fun onEvent(event: InventoryClickEvent) {
+        val player = event.whoClicked as? Player ?: return
         val slot = event.slot
-        pages.forEach { (_, page) ->
-            if (event.inventory == page.getInventory()) {
-                page.handleClick(event)
-            }
-        }
+        val pageId = getCurrentPage(player)
 
+        // 1. Global slot-specific handler
         itemClickHandlers[slot]?.invoke(event)
 
+        // 2. Page-specific slot handler
+        pageItemClickHandlers[pageId]?.get(slot)?.invoke(event)
+
+        // 3. Page-wide click handler
+        pageClickHandler[pageId]?.invoke(event)
+
+        // 4. Global click handlers
         clickHandlers.forEach { it.value.invoke(event) }
     }
 
     override fun onEvent(event: InventoryOpenEvent) {
-        openHandlers.forEach { it.value.invoke(event) }
+        val player = event.player as? Player ?: return
+        val pageId = getCurrentPage(player)
 
+        pageOpenHandlers[pageId]?.invoke(event)
+        openHandlers.forEach { it.value.invoke(event) }
     }
 
     override fun onEvent(event: InventoryCloseEvent) {
+        val player = event.player as? Player ?: return
+        val pageId = getCurrentPage(player)
+
+        pageCloseHandlers[pageId]?.invoke(event)
         closeHandlers.forEach { it.value.invoke(event) }
     }
-
 }

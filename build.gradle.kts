@@ -23,7 +23,7 @@ repositories {
 dependencies {
     compileOnly(libs.spigot)
     compileOnly(libs.authlib)
-    compileOnly(libs.kotlin)
+    implementation(libs.kotlin)
 
 
     compileOnly(libs.annotation)

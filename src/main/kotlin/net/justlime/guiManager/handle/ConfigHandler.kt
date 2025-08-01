@@ -2,6 +2,7 @@ package net.justlime.guiManager.handle
 
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.models.GuiItem
+import net.justlime.guiManager.type.ChestGUI
 import net.justlime.guiManager.utilities.toGuiItem
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -47,7 +48,9 @@ interface ConfigHandler {
         fun loadInventory(dataFolder: File, filename: String, path: String): Inventory {
             val file = File(dataFolder, filename)
             val config = YamlConfiguration.loadConfiguration(file)
-            val section = config.getConfigurationSection(path) ?: return GUI.create(GUISetting("Inventory", 6, InventoryType.CHEST)).inventory
+            val temGui = ChestGUI()
+
+            val section = config.getConfigurationSection(path) ?: return temGui.getInventory()
 
             val size = section.getInt("size", 9)
             val title = section.getString("title", "Inventory") ?: "Inventory"

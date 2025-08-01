@@ -87,3 +87,13 @@ fun createSkullWithTexture(texture: String): ItemStack {
     return skull
 }
 
+fun Pair<Int, Int>.toSlot(totalRows: Int = 6): Int {
+    var (row, col) = this
+
+    if (row == 0 && col == 0) return -1
+
+    row = if (row < 0) totalRows + row + 1 else row
+    col = if (col < 0) 9 + col + 1 else col
+
+    return (row - 1) * 9 + (col - 1)
+}

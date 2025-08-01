@@ -10,9 +10,12 @@ interface GUIPage {
 
     fun getInventory(): Inventory
 
-    fun addItem(item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)? = null): GUIPage
-    fun addItems(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)? = null)
-    fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)? = null): GUIPage
+    fun getItems(): Map<Int, GuiItem>
+    fun addItem(item: GuiItem, onClick: ((InventoryClickEvent) -> Unit) = {}): Int
+    fun addItems(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} })
+    fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit) = {}): Int
+    fun removeItem(item: GuiItem): GUIPage
+    fun removeItem(slot: Int): GUIPage
 
     fun onClick(handler: (InventoryClickEvent) -> Unit): Boolean
     fun onOpen(handler: (InventoryOpenEvent) -> Unit): Boolean
