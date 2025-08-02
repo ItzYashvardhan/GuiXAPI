@@ -1,5 +1,7 @@
 package net.justlime.guiManager.example.commands
 
+import net.justlime.guiManager.builder.ChestGuiBuilder
+import net.justlime.guiManager.builder.Navigation
 import net.justlime.guiManager.handle.CommandHandler
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.type.ChestGUI
@@ -28,7 +30,11 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
         }
         when (args[0]) {
             "save" -> {}
-            "page" -> pageExample(sender)
+            "page" -> {
+                val page = args.getOrNull(1)?.toIntOrNull() ?: 1
+                pageExample(sender, page)
+            }
+
             else -> {}
         }
         return true
@@ -40,7 +46,7 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
         return listOf("save", "page")
     }
 
-    fun pageExample(sender: Player) {
+    fun pageExample(sender: Player, page: Int) {
 
         val nextItem = ItemStack(Material.ARROW).toGuiItem()
         nextItem.displayName = "next"
@@ -53,23 +59,11 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-        ChestGUI("Pager GUI", 6) {
+        val gui = ChestGUI("Pager GUI", 6) {
 
-            onClick { it.isCancelled = true }
-
-            addItem(prevItem,48) {
-                if (currentPage > 0) {
-                    open(it.whoClicked as Player, --currentPage)
-                } else it.whoClicked.sendMessage("This is the first page")
-
-            }
-
-            addItem(nextItem,50) {
-                if (currentPage < (pages.keys.maxOrNull() ?: 0)) {
-                    currentPage++
-                    open(it.whoClicked as Player, currentPage)
-                }
-                else it.whoClicked.sendMessage("This is the last page")
+            nav{
+                this.nextItem = nextItem
+                this.prevItem = prevItem
             }
 
             setting.title = "Page 1"
@@ -77,36 +71,28 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
                 addItem(item1) {
                     it.whoClicked.sendMessage("Clicked on Item 1")
                 }
-                addItem(item2){
+                addItem(item2) {
                     it.whoClicked.sendMessage("Clicked on Item 2")
                 }
             }
 
+            setting.title = "Page 3"
+
+            onClick { it.isCancelled = true }
+
+
+
             setting.title = "Page 2"
             addPage {
-                addItem(item3){
+                addItem(item3) {
                     it.whoClicked.sendMessage("Clicked on Item 3")
                 }
-                addItem(item4){
+                addItem(item4) {
                     it.whoClicked.sendMessage("Clicked on Item 4")
                 }
             }
-
-            setting.title = "Page 3"
-            addPage {
-                addItem(item2){
-                    it.whoClicked.sendMessage("Clicked on Item 5")
-                }
-                addItem(item4){
-                    it.whoClicked.sendMessage("Clicked on Item 6")
-                }
-            }
-
             // Open initial page
-            open(sender, 2)
-        }
-
-
+        }.open(sender, page)
     }
-
 }
+

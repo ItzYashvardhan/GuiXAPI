@@ -17,13 +17,4 @@ interface GUIPage {
     fun removeItem(item: GuiItem): GUIPage
     fun removeItem(slot: Int): GUIPage
 
-    fun onClick(handler: (InventoryClickEvent) -> Unit): Boolean
-    fun onOpen(handler: (InventoryOpenEvent) -> Unit): Boolean
-    fun onClose(handler: (InventoryCloseEvent) -> Unit): Boolean
-
-    fun handleClick(event: InventoryClickEvent)
-    fun handleOpen(event: InventoryOpenEvent)
-    fun handleClose(event: InventoryCloseEvent)
-
-    fun inventoryTrim()
 }

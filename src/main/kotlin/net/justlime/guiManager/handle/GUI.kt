@@ -18,6 +18,7 @@ interface GUI : InventoryHolder {
     fun onEvent(event: InventoryOpenEvent)
     fun onEvent(event: InventoryCloseEvent)
 
+    fun open(player: Player, pageId: Int = 0)
     fun load(inventory: Inventory): GUI
 
 }
