@@ -15,8 +15,6 @@ import org.bukkit.entity.Player
 class ChestGUI(title: String = "Inventory", rows: Int = 6, block: ChestGuiBuilder.() -> Unit = {}) {
     private val guiHandler: GuiHandler
 
-
-
     init {
         val builder = ChestGuiBuilder(title, rows)
         builder.apply(block)

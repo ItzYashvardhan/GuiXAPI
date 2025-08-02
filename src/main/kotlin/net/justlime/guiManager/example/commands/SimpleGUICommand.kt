@@ -57,45 +57,43 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-        val gui = ChestGUI("Pager GUI", 6) {
+        ChestGUI("Pager GUI", 6) {
 
             nav{
-//                this.nextItem = nextItem
+                this.nextItem = nextItem
                 this.prevItem = prevItem
                 this.margin = 3
             }
 
-            onOpen {
-                sender.sendMessage("Opening")
-            }
-            onPageOpen {
-                sender.sendMessage("Opening a Page")
-            }
+            //Global Click handler
+            onClick { it.isCancelled = true }
 
-            onClose {
-                sender.sendMessage("Closing")
+            onOpen { sender.sendMessage("Opening") } //Run once when a new gui instance open
+            onPageOpen { sender.sendMessage("Opening a Page") } //Run everytime when a new page open
 
-            }
+            onClose { sender.sendMessage("Closing") }
+            onPageClose { sender.sendMessage("Closing a Page") }
 
-            onPageClose {
-                sender.sendMessage("Closing a Page")
-            }
+            //This item added to every page
+            addItem(item3,11){ it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
 
-            addItem(nextItem,11){
-                it.whoClicked.sendMessage("§cYou click on next page")
-            }
-
-            setting.title = "Page 1"
-            addPage {
+            addPage("Page1",6) {
+                //this item added to specific page only (page 1)
                 addItem(item1) {
                     it.whoClicked.sendMessage("Clicked on Item 1")
                 }
                 addItem(item2) {
                     it.whoClicked.sendMessage("Clicked on Item 2")
                 }
+
+                //Runs for only specific Page (1)
+                onOpen {
+                    sender.sendMessage("You open a page 1")
+                }
             }
 
-            setting.title = "Page 3"
+            setting.title = "Page 2"
+            setting.rows = 3
             addPage {
                 addItem(item3) {
                     it.whoClicked.sendMessage("Clicked on Item 5")
@@ -105,20 +103,8 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
                 }
             }
 
-            onClick { it.isCancelled = true }
 
 
-
-            setting.title = "Page 2"
-            addPage {
-                addItem(item3) {
-                    it.whoClicked.sendMessage("Clicked on Item 3")
-                }
-                addItem(item4) {
-                    it.whoClicked.sendMessage("Clicked on Item 4")
-                }
-            }
-            // Open initial page
         }.open(sender, page)
     }
 }

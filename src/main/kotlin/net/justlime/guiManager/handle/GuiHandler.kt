@@ -106,14 +106,10 @@ class GuiHandler(private val setting: GUISetting) : GUI {
         val pageId = getCurrentPage(player)
 
         pageOpenHandlers[pageId]?.invoke(event)
-        if (event.isCancelled) return
 
         if (!hasTriggeredGlobalOpen.contains(player.name)) {
             globalOpenHandler?.invoke(event)
-            // Only add them to the set if the event wasn't cancelled by the handler.
-            if (!event.isCancelled) {
                 hasTriggeredGlobalOpen.add(player.name)
-            }
         }
     }
 
