@@ -6,8 +6,9 @@ import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.plugin.java.JavaPlugin
 
-class InventoryListener() : Listener {
+class InventoryListener(val plugin: JavaPlugin) : Listener {
 
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
@@ -25,7 +26,7 @@ class InventoryListener() : Listener {
         val upperInventory = event.inventory
         val holder = upperInventory.holder
         if (holder !is GUI) return
-        holder.onEvent(event)
+        holder.onEvent(event, plugin)
     }
 
     @EventHandler

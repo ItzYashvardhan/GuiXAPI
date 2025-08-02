@@ -44,106 +44,65 @@ GuiManager is a powerful and flexible library for creating and managing in-game 
    }
    ```
 
+
+---
 ## Usage
 
-### Creating a Simple GUI
-
-To create a basic GUI, you first define a `GUISetting` which specifies the title and number of rows. Then, you use `GUI.create()` to instantiate the GUI.
+### PREPARE ITEMS
 
 ```kotlin
-val guiSetting = GUISetting("My Awesome GUI", 3) // 3 rows
-val myGui = GUI.create(guiSetting)
-```
-### Adding Items
+val nextItem = ItemStack(Material.ARROW).toGuiItem().apply { displayName = "next" }
+val prevItem = ItemStack(Material.ARROW).toGuiItem().apply { displayName = "prev" }
 
-You can add `GuiItem`s to your GUI. `GuiItem` is a data class that represents an `ItemStack` with additional properties like `glow` and `skullTexture`. You can also attach an `onClick` handler to individual items.
-
-```kotlin
-val myGuiItem = GuiItem(Material.DIAMOND, "Shiny Diamond", lore = listOf("Very valuable!"), glow = true)
-
-myGui.addItem(myGuiItem) { event ->
-    event.whoClicked.sendMessage("You clicked the shiny diamond!")
-}
-
-// Or set an item at a specific slot
-val anotherItem = GuiItem(Material.GOLD_INGOT, "Gold Bar")
-myGui.setItem(4, anotherItem) { event ->
-    event.whoClicked.sendMessage("You clicked the gold bar at slot 4!")
-}
+val item1 = ItemStack(Material.PAPER).toGuiItem()
+val item2 = ItemStack(Material.DIAMOND).toGuiItem()
+val item3 = ItemStack(Material.STONE).toGuiItem()
+val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 ```
 
-### Handling Events
 
-You can register global handlers for click, open, and close events on your GUI.
+### CREATE GUI
 
 ```kotlin
-myGui.onClick { event ->
-    event.isCancelled = true // Prevent players from taking items out
-    // Global click logic
-}
-
-myGui.onOpen { event ->
-    event.player.sendMessage("Welcome to the GUI!")
-}
-
-myGui.onClose { event ->
-    event.player.sendMessage("Thanks for visiting!")
-}
+val gui = ChestGUI("Pager GUI", 6) {...}
 ```
 
-### Multi-Page GUIs
 
-GuiManager supports multiple pages within a single GUI instance. You can create and manage different pages and navigate between them.
-val pagerGui = GUI.create(GUISetting("My Paged GUI", 6))
+### SETUP FUNCTIONALITIES
 
-**Create page 1**
 ```kotlin
-val page1Setting = GUISetting("Page 1", 3)
-pagerGui[1] = pagerGui.createPage(page1Setting).apply {
-    addItem(GuiItem(Material.STONE, "Item on Page 1")) { event ->
-        event.whoClicked.sendMessage("You clicked an item on Page 1!")
+ChestGUI("Pager GUI", 6) {
+    
+    onClick{ it.isCancelled = true }
+    
+    
+    nav {
+        this.nextItem = nextItem
+        this.prevItem = prevItem
+        this.margin = 3
     }
-}
-```
-**Create page 2**
-```kotlin
-
-
-val page2Setting = GUISetting("Page 2", 3)
-pagerGui[2] = pagerGui.createPage(page2Setting).apply {
-    addItem(GuiItem(Material.IRON_INGOT, "Item on Page 2")) { event ->
-        event.whoClicked.sendMessage("You clicked an item on Page 2!")
+   
+    onOpen {
+        sender.sendMessage("Opening")
     }
+   
+   addPage(title = "PAGE 1", gui = 3){
+       addItem(item1) {
+           it.whoClicked.sendMessage("Clicked on Item 1")
+       }
+      addItem(item2) {
+          it.whoClicked.sendMessage("Clicked on Item 2")
+      }
+   }
+   
+   onPageClose{
+       sender.sendMessage("Closing a Page")
+   }
+   
 }
 ```
 
-**Add navigation items to the main GUI (or each page)**
-```kotlin
-pagerGui.setItem(48, GuiItem(Material.ARROW, "Go to Page 1")) { event ->
-    pagerGui.openPage(event.whoClicked as Player, 1)
-}
-pagerGui.setItem(50, GuiItem(Material.ARROW, "Go to Page 2")) { event ->
-    pagerGui.openPage(event.whoClicked as Player, 2)
-}
-```
 
-**Open the initial page (main GUI)**
-```kotlin
-player.openInventory(pagerGui.inventory)
-```
 
-**To save an inventory**
-```kotlin
-ConfigHandler.saveInventory(plugin.dataFolder, "inventories", "my_saved_gui", myGui.inventory)
-```
 
-**To load an inventory**
-```kotlin
-val loadedInventory = ConfigHandler.loadInventory(plugin.dataFolder, "inventories", "my_saved_gui")
-if (loadedInventory != null) {
-    val loadedGui = GUI.load(loadedInventory, guiSetting)
-    player.openInventory(loadedGui.inventory)
-} else {
-    player.sendMessage("Could not load inventory 'my_saved_gui'.")
-}
-```
+

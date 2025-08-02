@@ -4,8 +4,18 @@ import net.justlime.guiManager.builder.ChestGuiBuilder
 import net.justlime.guiManager.handle.GuiHandler
 import org.bukkit.entity.Player
 
+/**
+ * Initializes a new ChestGUI instance using a builder pattern.
+ *
+ * @param title The title of the inventory.
+ * @param rows The number of rows in the inventory (1-6).
+ * @param block A lambda with `ChestGuiBuilder` as its receiver, allowing for
+ *              a configuration of the GUI.
+ */
 class ChestGUI(title: String = "Inventory", rows: Int = 6, block: ChestGuiBuilder.() -> Unit = {}) {
     private val guiHandler: GuiHandler
+
+
 
     init {
         val builder = ChestGuiBuilder(title, rows)

@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
+import org.bukkit.plugin.java.JavaPlugin
 
 /**
  * The core implementation of the GUI handler.
@@ -17,7 +18,7 @@ import org.bukkit.inventory.Inventory
  * @param setting The basic settings for the GUI (title, rows).
  */
 class GuiHandler(private val setting: GUISetting) : GUI {
-
+    private val hasTriggeredGlobalOpen = mutableSetOf<String>()
     // A single, optional handler for global events.
     var globalOpenHandler: ((InventoryOpenEvent) -> Unit)? = null
     var globalCloseHandler: ((InventoryCloseEvent) -> Unit)? = null
@@ -90,7 +91,6 @@ class GuiHandler(private val setting: GUISetting) : GUI {
         // Priority 1: Page-and-slot-specific handler.
         itemClickHandler[pageId]?.get(slot)?.invoke(event)
 
-
         // Priority 3: Page-wide click handler.
         pageClickHandlers[pageId]?.invoke(event)
 
@@ -108,22 +108,35 @@ class GuiHandler(private val setting: GUISetting) : GUI {
         pageOpenHandlers[pageId]?.invoke(event)
         if (event.isCancelled) return
 
-        globalOpenHandler?.invoke(event)
+        if (!hasTriggeredGlobalOpen.contains(player.name)) {
+            globalOpenHandler?.invoke(event)
+            // Only add them to the set if the event wasn't cancelled by the handler.
+            if (!event.isCancelled) {
+                hasTriggeredGlobalOpen.add(player.name)
+            }
+        }
     }
 
     /**
      * Handles inventory close events and cleans up player tracking to prevent memory leaks.
      */
-    override fun onEvent(event: InventoryCloseEvent) {
+    override fun onEvent(event: InventoryCloseEvent,plugin: JavaPlugin) {
         val player = event.player as? Player ?: return
         val pageId = getCurrentPage(player)
 
         // Fire handlers first.
         pageCloseHandlers[pageId]?.invoke(event)
-        globalCloseHandler?.invoke(event)
 
         // Clean up the player's page tracking to prevent memory leaks.
-        currentPages.remove(player.name)
+        Bukkit.getScheduler().runTask(plugin, Runnable {
+            val openInventory = player.openInventory.topInventory
+            if (!pageInventories.containsValue(openInventory)) {
+                globalCloseHandler?.invoke(event)
+                currentPages.remove(player.name)
+                hasTriggeredGlobalOpen.remove(player.name)
+            }
+        })
+
     }
 
     override fun load(inventory: Inventory): GUI {

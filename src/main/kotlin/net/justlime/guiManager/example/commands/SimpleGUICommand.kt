@@ -1,7 +1,5 @@
 package net.justlime.guiManager.example.commands
 
-import net.justlime.guiManager.builder.ChestGuiBuilder
-import net.justlime.guiManager.builder.Navigation
 import net.justlime.guiManager.handle.CommandHandler
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.type.ChestGUI
@@ -62,8 +60,29 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
         val gui = ChestGUI("Pager GUI", 6) {
 
             nav{
-                this.nextItem = nextItem
+//                this.nextItem = nextItem
                 this.prevItem = prevItem
+                this.margin = 3
+            }
+
+            onOpen {
+                sender.sendMessage("Opening")
+            }
+            onPageOpen {
+                sender.sendMessage("Opening a Page")
+            }
+
+            onClose {
+                sender.sendMessage("Closing")
+
+            }
+
+            onPageClose {
+                sender.sendMessage("Closing a Page")
+            }
+
+            addItem(nextItem,11){
+                it.whoClicked.sendMessage("§cYou click on next page")
             }
 
             setting.title = "Page 1"
@@ -77,6 +96,14 @@ class SimpleGUICommand(val plugin: JavaPlugin) : CommandHandler {
             }
 
             setting.title = "Page 3"
+            addPage {
+                addItem(item3) {
+                    it.whoClicked.sendMessage("Clicked on Item 5")
+                }
+                addItem(item3) {
+                    it.whoClicked.sendMessage("Clicked on Item 6")
+                }
+            }
 
             onClick { it.isCancelled = true }
 
