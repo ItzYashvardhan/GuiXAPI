@@ -137,8 +137,4 @@ class GuiHandler(private val setting: GUISetting) : GUI {
         })
 
     }
-
-    override fun load(inventory: Inventory): GUI {
-        return this
-    }
 }

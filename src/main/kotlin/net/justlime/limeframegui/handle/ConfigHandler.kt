@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.handle
 
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.utilities.toGuiItem
@@ -14,8 +15,9 @@ import java.io.File
 interface ConfigHandler {
 
     companion object {
+        var dataFolder = LimeFrameAPI.getPlugin().dataFolder
 
-        fun loadItem(dataFolder: File, filename: String, path: String): GuiItem {
+        fun loadItem(filename: String, path: String, dataFolder: File = Companion.dataFolder): GuiItem {
             val file = File(dataFolder, filename)
             val config = YamlConfiguration.loadConfiguration(file)
             val section = config.getConfigurationSection(path) ?: throw IllegalArgumentException("Section '$path' not found in $filename")
@@ -31,19 +33,19 @@ interface ConfigHandler {
             return GuiItem(material, displayName, amount, lore, glow, flags, customModelData, skullTexture)
         }
 
-        fun loadItems(dataFolder: File, filename: String, path: String): List<GuiItem> {
+        fun loadItems(filename: String, path: String, dataFolder: File = Companion.dataFolder): List<GuiItem> {
             val file = File(dataFolder, filename)
             val config = YamlConfiguration.loadConfiguration(file)
             val section = config.getConfigurationSection(path) ?: throw IllegalArgumentException("Section '$path' not found in $filename")
 
             return section.getKeys(false).mapNotNull { key ->
                 section.getConfigurationSection(key)?.let {
-                    loadItem(dataFolder, filename, "$path.$key")
+                    loadItem(filename, "$path.$key", dataFolder)
                 }
             }
         }
 
-        fun loadInventory(dataFolder: File, filename: String, path: String): Inventory {
+        fun loadInventory(filename: String, path: String, dataFolder: File = Companion.dataFolder): Inventory {
             val file = File(dataFolder, filename)
             val config = YamlConfiguration.loadConfiguration(file)
             val gui = ChestGUI()
@@ -59,14 +61,14 @@ interface ConfigHandler {
             for (key in itemsSection.getKeys(false)) {
                 val slot = key.toIntOrNull() ?: continue
                 val itemSection = itemsSection.getConfigurationSection(key) ?: continue
-                val item = loadItem(dataFolder, filename, "$path.items.$key")
+                val item = loadItem(filename, "$path.items.$key", dataFolder)
                 inventory.setItem(slot, item.toItemStack())
             }
 
             return inventory
         }
 
-        fun saveItem(dataFolder: File, filename: String, path: String, item: GuiItem): Boolean {
+        fun saveItem(filename: String, path: String, item: GuiItem, dataFolder: File = Companion.dataFolder): Boolean {
             val file = File(dataFolder, filename)
             val config = if (file.exists()) YamlConfiguration.loadConfiguration(file) else YamlConfiguration()
 
@@ -78,7 +80,7 @@ interface ConfigHandler {
             }.isSuccess
         }
 
-        fun saveItems(dataFolder: File, filename: String, path: String, item: GuiItem): Boolean {
+        fun saveItems(filename: String, path: String, item: GuiItem, dataFolder: File = Companion.dataFolder): Boolean {
             val file = File(dataFolder, filename)
             val config = if (file.exists()) YamlConfiguration.loadConfiguration(file) else YamlConfiguration()
 
@@ -91,7 +93,7 @@ interface ConfigHandler {
             }.isSuccess
         }
 
-        fun saveInventory(dataFolder: File, filename: String, path: String, inventory: Inventory, inventoryTitle: String = "Inventory"): Boolean {
+        fun saveInventory(filename: String, path: String, inventory: Inventory, inventoryTitle: String = "Inventory", dataFolder: File = Companion.dataFolder): Boolean {
             val file = File(dataFolder, filename)
             val config = if (file.exists()) YamlConfiguration.loadConfiguration(file) else YamlConfiguration()
 

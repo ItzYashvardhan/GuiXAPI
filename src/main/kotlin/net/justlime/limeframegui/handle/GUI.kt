@@ -18,6 +18,4 @@ interface GUI : InventoryHolder {
     fun onEvent(event: InventoryCloseEvent,plugin: JavaPlugin)
 
     fun open(player: Player, pageId: Int = 0)
-    fun load(inventory: Inventory): GUI
-
 }
