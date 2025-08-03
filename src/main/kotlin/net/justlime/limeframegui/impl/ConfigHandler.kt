@@ -70,7 +70,7 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
                 customModelData = takeIf { contains(keys.model) }?.getInt(keys.model),
                 amount = getInt(keys.amount, 1),
                 skullTexture = getString(keys.texture),
-                slot = getInt(keys.slot),
+                slot = getString(keys.slot)?.toIntOrNull(),
                 slotList = getIntegerList(keys.slotList)
             )
         }
