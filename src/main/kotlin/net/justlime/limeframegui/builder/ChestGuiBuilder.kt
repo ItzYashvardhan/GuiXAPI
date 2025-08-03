@@ -155,8 +155,40 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
             if (visibleCondition()) {
                 val globalPage = pages[GLOBAL_PAGE] ?: return@to
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
-                globalPage.setItem(item.slot!!, item, onClick)
-                clickHandlers[item.slot!!] = onClick
+
+                if (item.slot != null) {
+                    globalPage.setItem(item.slot!!, item, onClick)
+                    clickHandlers[item.slot!!] = onClick
+                }
+
+                if (item.slotList.isNotEmpty()) {
+                    item.slotList.forEach { slot ->
+                        globalPage.setItem(slot, item, onClick)
+                        clickHandlers[slot] = onClick
+                    }
+                }
+            }
+        }
+    }
+
+    fun setItems(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
+        actions += ChestGuiActions.GLOBAL_ITEMS to {
+            if (visibleCondition()) {
+                val globalPage = pages[GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
+
+                if (item.slot != null) {
+                    globalPage.setItem(item.slot!!, item)
+                    clickHandlers[item.slot!!] = { event -> onClick.invoke(item, event) }
+                }
+
+                if (item.slotList.isNotEmpty()) {
+                    item.slotList.forEach { slot ->
+                        globalPage.setItem(slot, item)
+                        clickHandlers[slot] = { event -> onClick.invoke(item, event) }
+                    }
+                }
+
             }
         }
     }
@@ -174,18 +206,6 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
         }
     }
 
-    fun setItem(items: GuiItem, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
-        actions += ChestGuiActions.GLOBAL_ITEMS to {
-            val globalPage = pages[GLOBAL_PAGE] ?: return@to
-            val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
-
-            items.slotList.forEach { currentSlot ->
-                globalPage.setItem(currentSlot, items)
-                clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
-            }
-        }
-    }
-
     fun setItem(items: GuiItem, slot: List<Int>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             val globalPage = pages[GLOBAL_PAGE] ?: return@to
@@ -197,8 +217,6 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
             }
         }
     }
-
-
 
     fun nav(block: Navigation.() -> Unit) {
         actions += ChestGuiActions.NAVIGATION to { Navigation(this, guiHandler).apply(block).build() }

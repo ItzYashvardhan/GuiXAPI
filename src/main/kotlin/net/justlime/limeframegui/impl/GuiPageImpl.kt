@@ -36,7 +36,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GuiHandler
         return slot
     }
 
-    override fun addItems(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)) {
+    override fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)) {
         items.forEach { guiItem ->
             val slot = inventory.firstEmpty()
             if (slot != -1) {

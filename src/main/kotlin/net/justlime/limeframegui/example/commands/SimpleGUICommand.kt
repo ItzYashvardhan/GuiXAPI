@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.example.commands
 
+import net.justlime.limeframegui.builder.Navigation
 import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
 import net.justlime.limeframegui.impl.ConfigHandler
@@ -79,7 +80,7 @@ class SimpleGUICommand() : CommandHandler {
             onPageClose { player.sendMessage("Closing a Page") }
 
             //This item added to every page
-            setItem(item3, 11) { it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
+            setItem(item3)
 
             addPage("Page {page}", 6) {
                 //this item added to specific page only (page 1)
