@@ -24,7 +24,7 @@ object FrameColor {
             ColorType.HEX -> translateHexToLegacy(text)
             ColorType.MINI_MESSAGE -> {
                 val legacyText = ChatColor.translateAlternateColorCodes('&', text)
-                val miniText = text.replaceLegacyToMini()
+                val miniText = legacyText.replaceLegacyToMini()
                 toLegacyMini(miniText)
             }
         }
