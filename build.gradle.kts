@@ -58,7 +58,10 @@ publishing {
             artifactId = "LimeFrameGUI"
             version = project.version.toString()
         }
+
     }
+    //use kotlin 2.1.0
+
 }
 
 // === SHADOW COPY TASK ===
