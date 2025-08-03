@@ -1,6 +1,6 @@
 package net.justlime.limeframegui.models
 
-import net.justlime.limeframegui.utilities.ColorFormat
+import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -49,8 +49,8 @@ data class GuiItem(
         }
 
         // Apply custom settings
-        meta.setDisplayName(ColorFormat.applyColor(displayName))
-        if (lore.isNotEmpty()) meta.lore = ColorFormat.applyColor(lore)
+        meta.setDisplayName(FrameColor.applyColor(displayName))
+        if (lore.isNotEmpty()) meta.lore = FrameColor.applyColor(lore)
 
         if (glow) {
             meta.addEnchant(Enchantment.UNBREAKING, 1, true)

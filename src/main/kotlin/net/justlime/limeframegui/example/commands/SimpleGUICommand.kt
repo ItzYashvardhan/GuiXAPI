@@ -3,7 +3,7 @@ package net.justlime.limeframegui.example.commands
 import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
 import net.justlime.limeframegui.impl.ConfigHandler
-import net.justlime.limeframegui.utilities.ColorFormat
+import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
 import net.justlime.limeframegui.utilities.toGuiItem
@@ -154,7 +154,7 @@ class SimpleGUICommand() : CommandHandler {
     }
 
     fun savePage(player: Player) {
-        ColorFormat.colorType = ColorType.MINI_MESSAGE
+        FrameColor.colorType = ColorType.MINI_MESSAGE
 
         val config = ConfigHandler("config.yml")
         val inventory = config.loadInventoryBase64("inventory")

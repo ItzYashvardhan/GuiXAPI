@@ -7,7 +7,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.ChatColor
 import java.util.regex.Pattern
 
-object ColorFormat {
+object FrameColor {
     var colorType: ColorType = ColorType.LEGACY
 
     private val legacy = LegacyComponentSerializer.legacySection()
@@ -22,7 +22,11 @@ object ColorFormat {
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', text)
             ColorType.HEX -> translateHexToLegacy(text)
-            ColorType.MINI_MESSAGE -> toLegacyMini(text.replaceLegacyToMini())
+            ColorType.MINI_MESSAGE -> {
+                val legacyText = ChatColor.translateAlternateColorCodes('&', text)
+                val miniText = text.replaceLegacyToMini()
+                toLegacyMini(miniText)
+            }
         }
     }
 
