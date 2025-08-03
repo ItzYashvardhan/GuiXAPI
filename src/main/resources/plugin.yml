@@ -1,5 +1,5 @@
 name: LimeFrameGUI
-version: '1.0'
+version: '1.0.0'
 main: net.justlime.guiManager.LimeFrameGUI
 api-version: '1.21'
 load: STARTUP

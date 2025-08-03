@@ -1,11 +1,11 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     id("com.gradleup.shadow") version "8.3.0"
-    id("com.github.ben-manes.versions") version("0.51.0")
+    `maven-publish`
 }
 
 group = "net.justlime"
-version = "1.0"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -50,12 +50,27 @@ tasks.processResources {
     }
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = "LimeFrameGUI"
+            version = project.version.toString()
+        }
+    }
+}
+
 // === SHADOW COPY TASK ===
 tasks.register<Copy>("shadowJarCopy") {
     group = "build"
-    description = "Copy shadowJar (non-obfuscated) jar to local test server"
+    description = "Copy shadowJar jar to local test server"
     dependsOn("shadowJar")
     from(tasks.shadowJar.get().outputs.files.singleFile)
     into("E:/Minecraft/servers/PaperMC-1.21.4/plugins")
 }
+
+
+
+
 
