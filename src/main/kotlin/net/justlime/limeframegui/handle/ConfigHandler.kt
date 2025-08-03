@@ -22,14 +22,14 @@ interface ConfigHandler {
             val config = YamlConfiguration.loadConfiguration(file)
             val section = config.getConfigurationSection(path) ?: throw IllegalArgumentException("Section '$path' not found in $filename")
 
-            val displayName = section.getString("displayName") ?: ""
+            val displayName = section.getString("name") ?: ""
             val material = Material.getMaterial(section.getString("material") ?: "STONE") ?: Material.STONE
             val lore = section.getStringList("lore")
             val glow = section.getBoolean("glow", false)
             val flags = section.getStringList("flags").mapNotNull { runCatching { ItemFlag.valueOf(it) }.getOrNull() }
-            val customModelData = if (section.contains("customModelData")) section.getInt("customModelData") else null
+            val customModelData = if (section.contains("model")) section.getInt("model") else null
             val amount = section.getInt("amount", 1)
-            val skullTexture = section.getString("skullTexture")
+            val skullTexture = section.getString("texture")
             return GuiItem(material, displayName, amount, lore, glow, flags, customModelData, skullTexture)
         }
 
@@ -118,13 +118,13 @@ interface ConfigHandler {
          * Shared internal method to write a GuiItem to a ConfigurationSection.
          */
         private fun writeItemToSection(section: ConfigurationSection, item: GuiItem) {
-            section.set("displayName", item.displayName)
+            section.set("name", item.displayName)
             section.set("material", item.material.name)
             section.set("lore", item.lore)
             section.set("glow", item.glow)
             section.set("flags", item.flags.mapNotNull { it?.name })
-            section.set("customModelData", item.customModelData.toString())
-            section.set("skullTexture", item.skullTexture.toString())
+            section.set("model", item.customModelData.toString())
+            section.set("texture", item.skullTexture.toString())
             section.set("amount", item.amount)
         }
     }
