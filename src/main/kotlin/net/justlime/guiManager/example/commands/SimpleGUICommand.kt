@@ -1,7 +1,6 @@
 package net.justlime.guiManager.example.commands
 
 import net.justlime.guiManager.handle.CommandHandler
-import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.type.ChestGUI
 import net.justlime.guiManager.utilities.toGuiItem
 import org.bukkit.Material
@@ -13,7 +12,6 @@ import org.bukkit.inventory.ItemStack
 class SimpleGUICommand() : CommandHandler {
     override val permission: String = ""
     override val aliases: List<String> = mutableListOf()
-    val guiSetting = GUISetting("Simple Inventory", 6)
 
     override fun onCommand(
         sender: CommandSender, command: Command, label: String, args: Array<out String?>
@@ -29,7 +27,11 @@ class SimpleGUICommand() : CommandHandler {
             "save" -> {}
             "page" -> {
                 val page = args.getOrNull(1)?.toIntOrNull() ?: 1
-                pageExample(sender, page)
+                pageExample(sender)
+            }
+
+            "home" -> {
+                homePage(sender)
             }
 
             else -> {}
@@ -40,10 +42,10 @@ class SimpleGUICommand() : CommandHandler {
     override fun onTabComplete(
         sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): List<String?>? {
-        return listOf("save", "page")
+        return listOf("save", "page","home")
     }
 
-    fun pageExample(sender: Player, page: Int) {
+    fun pageExample(player: Player){
 
         val nextItem = ItemStack(Material.ARROW).toGuiItem()
         nextItem.displayName = "next"
@@ -56,9 +58,9 @@ class SimpleGUICommand() : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-        ChestGUI("Pager GUI", 6) {
+       ChestGUI("Pager GUI", 6) {
 
-            nav{
+            nav {
                 this.nextItem = nextItem
                 this.prevItem = prevItem
                 this.margin = 3
@@ -67,16 +69,16 @@ class SimpleGUICommand() : CommandHandler {
             //Global Click handler
             onClick { it.isCancelled = true }
 
-            onOpen { sender.sendMessage("Opening") } //Run once when a new gui instance open
-            onPageOpen { sender.sendMessage("Opening a Page") } //Run everytime when a new page open
+            onOpen { player.sendMessage("Opening") } //Run once when a new gui instance open
+            onPageOpen { player.sendMessage("Opening a Page") } //Run everytime when a new page open
 
-            onClose { sender.sendMessage("Closing") }
-            onPageClose { sender.sendMessage("Closing a Page") }
+            onClose { player.sendMessage("Closing") }
+            onPageClose { player.sendMessage("Closing a Page") }
 
             //This item added to every page
-            addItem(item3,11){ it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
+            addItem(item3, 11) { it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
 
-            addPage("Page {page}",6) {
+            addPage("Page {page}", 6) {
                 //this item added to specific page only (page 1)
                 addItem(item1) {
                     it.whoClicked.sendMessage("Clicked on Item 1")
@@ -87,7 +89,7 @@ class SimpleGUICommand() : CommandHandler {
 
                 //Runs for only specific Page (1)
                 onOpen {
-                    sender.sendMessage("You open a page 1")
+                    player.sendMessage("You open a page 1")
                 }
             }
 
@@ -102,18 +104,51 @@ class SimpleGUICommand() : CommandHandler {
                 }
             }
 
-            addPage("Page {page}",4) {
-                addItem(item3) {
-                    it.whoClicked.sendMessage("Clicked on Item 5")
+            addPage("Page {page}", 4) {
+                addItem(item4) {
+                    it.whoClicked.sendMessage("Clicked on Item ${it.slot} at page $currentPage")
                 }
                 addItem(item3) {
-                    it.whoClicked.sendMessage("Clicked on Item 6")
+                    it.whoClicked.sendMessage("Clicked on Item ${it.slot} at page $currentPage")
                 }
             }
 
-
-
-        }.open(sender, page)
+        }.open(player)
     }
+
+    fun simpleGUI(): ChestGUI {
+        return ChestGUI("Simple GUI", 6) {
+            onClick { it.isCancelled = true }
+
+            val item = ItemStack(Material.DIAMOND).toGuiItem().apply {
+                displayName = "§aClick Me!"
+                lore = listOf("§7This is a simple item.")
+            }
+
+            addItem(item) {
+                it.whoClicked.sendMessage("§aYou clicked the diamond!")
+            }
+        }
+    }
+
+    fun homePage(player: Player) {
+
+        ChestGUI("Home Page", 1) {
+            val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { displayName = "Open Simple GUI" }
+
+            addItem(simpleItem) {
+                simpleGUI().open(it.whoClicked as Player)
+            }
+
+            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { displayName = "Open Pager GUI" }
+
+            addItem(pageItem) {
+                pageExample(player)
+            }
+
+        }.open(player)
+
+    }
+
 }
 

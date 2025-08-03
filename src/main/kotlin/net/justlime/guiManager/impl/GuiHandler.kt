@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin
  */
 class GuiHandler(private val setting: GUISetting) : GUI {
     private val hasTriggeredGlobalOpen = mutableSetOf<String>()
+
     // A single, optional handler for global events.
     var globalOpenHandler: ((InventoryOpenEvent) -> Unit)? = null
     var globalCloseHandler: ((InventoryCloseEvent) -> Unit)? = null
@@ -47,6 +48,7 @@ class GuiHandler(private val setting: GUISetting) : GUI {
      * @param pageId The ID of the page to open. Defaults to 0.
      */
     override fun open(player: Player, pageId: Int) {
+
         val inventoryToOpen = pageInventories[pageId]
         if (inventoryToOpen == null) {
             // Optionally send an error message to the player or log it.
@@ -110,7 +112,7 @@ class GuiHandler(private val setting: GUISetting) : GUI {
 
         if (!hasTriggeredGlobalOpen.contains(player.name)) {
             globalOpenHandler?.invoke(event)
-                hasTriggeredGlobalOpen.add(player.name)
+            hasTriggeredGlobalOpen.add(player.name)
         }
     }
 

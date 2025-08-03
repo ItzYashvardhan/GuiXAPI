@@ -26,7 +26,7 @@ class ChestGUI(title: String = "Inventory", rows: Int = 6, block: ChestGuiBuilde
      * @param player The player to open the GUI for.
      * @param page The page number to open to.
      */
-    fun open(player: Player, page: Int = 0) {
+    fun open(player: Player, page: Int = if (guiHandler.pageInventories[1] != null) 1 else 0) {
         guiHandler.open(player, page)
     }
 
