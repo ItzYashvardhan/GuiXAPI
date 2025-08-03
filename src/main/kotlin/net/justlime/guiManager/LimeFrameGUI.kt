@@ -4,12 +4,12 @@ import net.justlime.guiManager.example.commands.CommandManager
 import org.bukkit.plugin.java.JavaPlugin
 
 
-class GUIManager : JavaPlugin() {
+class LimeFrameGUI : JavaPlugin() {
 
     override fun onEnable() {
         this.saveDefaultConfig()
         CommandManager(this)
-        GuiXApi.init(this)
+        LimeFrameAPI.init(this)
     }
 
     override fun onDisable() {

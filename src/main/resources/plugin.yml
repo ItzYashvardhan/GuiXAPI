@@ -1,6 +1,6 @@
 name: GuiManager
 version: '1.0'
-main: net.justlime.guiManager.GUIManager
+main: net.justlime.guiManager.LimeFrameGUI
 api-version: '1.21'
 load: STARTUP
 authors: [ItzJustLime]
