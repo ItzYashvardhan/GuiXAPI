@@ -207,13 +207,18 @@ object SkullUtils {
     }
 
     /**
-     * Create a player profile object
+     * Create a player profile object from a texture identifier.
      * Player profile was introduced in 1.18.1+
      *
-     * @param base64Url the base64 encoded texture URL to use
+     * This method correctly handles texture identifiers that are:
+     * 1. A raw texture ID (e.g., "dceb1708d5404ef326103e7b60559c9178f3dce729007ac9a0b498bdebe46107")
+     * 2. A full texture URL (e.g., "http://textures.minecraft.net/texture/...")
+     * 3. A Base64-encoded texture value.
+     *
+     * @param texture The texture identifier.
      * @return player profile
      */
-    private fun getPlayerProfile(texture: String): PlayerProfile {
+    fun createProfileFromTexture(texture: String): PlayerProfile {
         val profile = Bukkit.createPlayerProfile(UUID.randomUUID())
         val textures = profile.textures
 
@@ -227,14 +232,17 @@ object SkullUtils {
 
         if (skinUrl.isEmpty()) return profile
 
-        try {
+        runCatching {
             textures.skin = URL(skinUrl)
-        } catch (e: MalformedURLException) {
-            // This might happen if the raw texture ID is invalid, but it's better than crashing.
-            Bukkit.getLogger().info(e.message)
+        }.onFailure {
+            Bukkit.getLogger().warning("[LimeFrameGUI] Could not set skull skin from a malformed URL: $skinUrl. Error: ${it.message}")
         }
         profile.setTextures(textures)
         return profile
+    }
+
+    private fun getPlayerProfile(texture: String): PlayerProfile {
+        return createProfileFromTexture(texture)
     }
 
     /**

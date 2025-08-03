@@ -136,10 +136,34 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
         }
     }
 
-    fun setItem(item: GuiItem, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
-        if (slot == null || !visibleCondition()) return
+    fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+        actions += ChestGuiActions.GLOBAL_ITEMS to {
+            val globalPage = pages[GLOBAL_PAGE] ?: return@to
+            // Get the map for the global page, or create it if it doesn't exist.
+            val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
+
+            items.forEach { guiItem ->
+                globalPage.addItem(guiItem) { event -> onClick.invoke(guiItem, event) }.let { addedSlot ->
+                    clickHandlers[addedSlot] = { event -> onClick.invoke(guiItem, event) }
+                }
+            }
+        }
+    }
+
+    fun setItem(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition()) {
+                val globalPage = pages[GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
+                globalPage.setItem(item.slot!!, item, onClick)
+                clickHandlers[item.slot!!] = onClick
+            }
+        }
+    }
+
+    fun setItem(item: GuiItem, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+        actions += ChestGuiActions.GLOBAL_ITEMS to {
+            if (visibleCondition() && slot != null) {
                 val globalPage = pages[GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
@@ -150,31 +174,31 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
         }
     }
 
-    fun addItems(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun setItem(items: GuiItem, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             val globalPage = pages[GLOBAL_PAGE] ?: return@to
-            // Get the map for the global page, or create it if it doesn't exist.
             val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
 
-            items.forEach { guiItem ->
-                globalPage.addItem(guiItem).let { slot ->
-                    // Add a handler for each item in the list.
-                    clickHandlers[slot] = { event -> onClick.invoke(guiItem, event) }
-                }
+            items.slotList.forEach { currentSlot ->
+                globalPage.setItem(currentSlot, items)
+                clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
             }
         }
     }
 
-    fun setItems(items: Pair<Int, GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun setItem(items: GuiItem, slot: List<Int>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             val globalPage = pages[GLOBAL_PAGE] ?: return@to
             val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
 
-            val (slot, guiItem) = items
-            globalPage.setItem(slot, guiItem)
-            clickHandlers[slot] = { event -> onClick.invoke(guiItem, event) }
+            slot.forEach { currentSlot ->
+                globalPage.setItem(currentSlot, items)
+                clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
+            }
         }
     }
+
+
 
     fun nav(block: Navigation.() -> Unit) {
         actions += ChestGuiActions.NAVIGATION to { Navigation(this, guiHandler).apply(block).build() }
