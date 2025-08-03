@@ -121,23 +121,31 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
 
     // --- Item Management ---
 
-    fun addItem(item: GuiItem, slot: Int = -1, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun addItem(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+        if (!visibleCondition()) return
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition()) {
                 val globalPage = pages[GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
-
-                if (slot != -1) {
-                    globalPage.setItem(slot, item, onClick)
-                    // Add the handler for this specific slot.
-                    clickHandlers[slot] = onClick
-                } else {
-                    globalPage.addItem(item, onClick).let { addedSlot ->
-                        // Add the handler for the slot that was automatically found.
-                        clickHandlers[addedSlot] = onClick
-                    }
+                globalPage.addItem(item, onClick).let { addedSlot ->
+                    // Add the handler for the slot that was automatically found.
+                    clickHandlers[addedSlot] = onClick
                 }
+            }
+        }
+    }
+
+    fun setItem(item: GuiItem, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+        if (slot == null || !visibleCondition()) return
+        actions += ChestGuiActions.GLOBAL_ITEMS to {
+            if (visibleCondition()) {
+                val globalPage = pages[GLOBAL_PAGE] ?: return@to
+                // Get the map for the global page, or create it if it doesn't exist.
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
+                globalPage.setItem(slot, item, onClick)
+                // Add the handler for this specific slot.
+                clickHandlers[slot] = onClick
             }
         }
     }
@@ -157,18 +165,28 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
         }
     }
 
+    fun setItems(items: Pair<Int, GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+        actions += ChestGuiActions.GLOBAL_ITEMS to {
+            val globalPage = pages[GLOBAL_PAGE] ?: return@to
+            val clickHandlers = guiHandler.itemClickHandler.getOrPut(GLOBAL_PAGE) { mutableMapOf() }
+
+            val (slot, guiItem) = items
+            globalPage.setItem(slot, guiItem)
+            clickHandlers[slot] = { event -> onClick.invoke(guiItem, event) }
+        }
+    }
+
     fun nav(block: Navigation.() -> Unit) {
         actions += ChestGuiActions.NAVIGATION to { Navigation(this, guiHandler).apply(block).build() }
     }
 
-    fun loadInventoryContents(inventory: Inventory){
+    fun loadInventoryContents(inventory: Inventory) {
         for (i in 0 until inventory.size) {
             val itemStack = inventory.getItem(i) ?: continue
             val guiItem = itemStack.toGuiItem()
-            addItem(guiItem, i)
+            setItem(guiItem, i)
         }
     }
-
 
     /**
      * Executes all queued actions in their prioritized order and returns the fully configured GuiImpl handler.

@@ -79,7 +79,7 @@ class SimpleGUICommand() : CommandHandler {
             onPageClose { player.sendMessage("Closing a Page") }
 
             //This item added to every page
-            addItem(item3, 11) { it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
+            setItem(item3, 11) { it.whoClicked.sendMessage("§cYou click on a item at ${it.slot}") }
 
             addPage("Page {page}", 6) {
                 //this item added to specific page only (page 1)

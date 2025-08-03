@@ -1,5 +1,5 @@
 /**
- * Code Reserved to DeluxeMenu*
+ * Code Brought You by DeluxeMenu :)*
  * github: https://github.com/HelpChat/DeluxeMenus/blob/main/src/main/java/com/extendedclip/deluxemenus/utils/SkullUtils.java
  *
  * */
@@ -67,8 +67,7 @@ object SkullUtils {
      * @return fully encoded texture url
      */
     fun getEncoded(url: String): String {
-        val encodedData: ByteArray =
-            Base64.getEncoder().encode(String.format("{textures:{SKIN:{url:\"%s\"}}}", "https://textures.minecraft.net/texture/$url").toByteArray())
+        val encodedData: ByteArray = Base64.getEncoder().encode(String.format("{textures:{SKIN:{url:\"%s\"}}}", "https://textures.minecraft.net/texture/$url").toByteArray())
         return String(encodedData)
     }
 
@@ -216,23 +215,25 @@ object SkullUtils {
      */
     private fun getPlayerProfile(texture: String): PlayerProfile {
         val profile = Bukkit.createPlayerProfile(UUID.randomUUID())
+        val textures = profile.textures
 
         val skinUrl = if (texture.startsWith("http")) {
             texture
-        } else if (!texture.startsWith("{")) {
-            // Assume it's raw texture ID
-            "https://textures.minecraft.net/texture/$texture"
         } else {
-            decodeSkinUrl(texture) ?: ""
+            // Try to decode as a Base64 texture. If it fails (returns null),
+            // then assume it's a raw texture ID.
+            decodeSkinUrl(texture) ?: "https://textures.minecraft.net/texture/$texture"
         }
 
         if (skinUrl.isEmpty()) return profile
 
         try {
-            profile.textures.skin = URL(skinUrl)
+            textures.skin = URL(skinUrl)
         } catch (e: MalformedURLException) {
-            e.printStackTrace()
+            // This might happen if the raw texture ID is invalid, but it's better than crashing.
+            Bukkit.getLogger().info(e.message)
         }
+        profile.setTextures(textures)
         return profile
     }
 
@@ -251,17 +252,24 @@ object SkullUtils {
      * @return the url of the texture if found, otherwise `null`
      */
     fun decodeSkinUrl(base64Texture: String): String? {
-        if (!Base64.getDecoder().decode(base64Texture).isNotEmpty()) {
-            return null
+        return try {
+            val decodedBytes = Base64.getDecoder().decode(base64Texture)
+            if (decodedBytes.isEmpty()) {
+                return null
+            }
+
+            val decodedJson = String(decodedBytes)
+            if (!decodedJson.trim().startsWith("{")) {
+                return null // Decoded content is not JSON
+            }
+
+            val decodedObject = GSON.fromJson(decodedJson, JsonObject::class.java)
+            val textures = decodedObject["textures"]?.asJsonObject ?: return null
+            val skin = textures["SKIN"]?.asJsonObject ?: return null
+            skin["url"]?.asString
+        } catch (e: Exception) { // Catches IllegalArgumentException (invalid base64) and JsonParseException
+            null
         }
-        val decoded = String(Base64.getDecoder().decode(base64Texture))
-        if (!decoded.trim().startsWith("{")) {
-            return null // Not JSON
-        }
-        val decodedObject = GSON.fromJson(decoded, JsonObject::class.java)
-        val textures = decodedObject["textures"]?.asJsonObject ?: return null
-        val skin = textures["SKIN"]?.asJsonObject ?: return null
-        return skin["url"]?.asString
     }
 
     fun getHead(): ItemStack {
