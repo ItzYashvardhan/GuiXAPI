@@ -1,7 +1,11 @@
 package net.justlime.limeframegui.example.commands
 
+import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
+import net.justlime.limeframegui.impl.ConfigHandler
+import net.justlime.limeframegui.utilities.ColorFormat
 import net.justlime.limeframegui.type.ChestGUI
+import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
 import net.justlime.limeframegui.utilities.toGuiItem
 import org.bukkit.Material
 import org.bukkit.command.Command
@@ -13,8 +17,7 @@ class SimpleGUICommand() : CommandHandler {
     override val permission: String = ""
     override val aliases: List<String> = mutableListOf()
 
-    override fun onCommand(
-        sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): Boolean {
         if (sender !is Player) {
             return true
@@ -23,10 +26,11 @@ class SimpleGUICommand() : CommandHandler {
             sender.sendMessage("No arguments provided")
             return true
         }
+
         when (args[0]) {
-            "save" -> {}
+
+            "save" -> savePage(sender)
             "page" -> {
-                val page = args.getOrNull(1)?.toIntOrNull() ?: 1
                 pageExample(sender)
             }
 
@@ -39,13 +43,12 @@ class SimpleGUICommand() : CommandHandler {
         return true
     }
 
-    override fun onTabComplete(
-        sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): List<String?>? {
-        return listOf("save", "page","home")
+        return listOf("save", "page", "home")
     }
 
-    fun pageExample(player: Player){
+    fun pageExample(player: Player) {
 
         val nextItem = ItemStack(Material.ARROW).toGuiItem()
         nextItem.displayName = "next"
@@ -58,7 +61,7 @@ class SimpleGUICommand() : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-       ChestGUI("Pager GUI", 6) {
+        ChestGUI("Pager GUI", 6) {
 
             nav {
                 this.nextItem = nextItem
@@ -146,6 +149,27 @@ class SimpleGUICommand() : CommandHandler {
                 pageExample(player)
             }
 
+        }.open(player)
+
+    }
+
+    fun savePage(player: Player) {
+        ColorFormat.colorType = ColorType.MINI_MESSAGE
+
+        val config = ConfigHandler("config.yml")
+        val inventory = config.loadInventoryBase64("inventory")
+        val setting = config.loadInventorySetting("inventory")
+
+        ChestGUI(setting.title, setting.rows) {
+
+            onOpen {
+            }
+            loadInventoryContents(inventory)
+
+            onClose {
+                val inventory = pages[GLOBAL_PAGE]?.getInventory() ?: return@onClose //Definitely not happening
+                config.saveInventoryBase64("inventory", inventory, setting.title)
+            }
         }.open(player)
 
     }

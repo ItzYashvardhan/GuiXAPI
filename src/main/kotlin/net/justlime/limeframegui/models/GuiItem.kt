@@ -1,6 +1,6 @@
 package net.justlime.limeframegui.models
 
-import net.justlime.limeframegui.manager.ColorFormat
+import net.justlime.limeframegui.utilities.ColorFormat
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -20,7 +20,8 @@ data class GuiItem(
     var skullTexture: String? = null,
     var slot: Int? = null, //Store object slot
     var slotList: MutableList<Int> = mutableListOf(), //to store single item in many slots
-    var onClickBlock: (InventoryClickEvent) -> Unit = {} //TODO "To Store Click data can be used later like template"
+    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data can be used later like template"
+    var key: String? = null
 ) {
 
     companion object {

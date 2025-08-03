@@ -9,6 +9,7 @@ data class ConfigKeys(
     var model: String = "model",
     var amount: String = "amount",
     var texture: String = "texture",
-    var slot: String = "slot"
+    var slot: String = "slot",
+    var slotList: String = "slots"
 )
 

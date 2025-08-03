@@ -11,6 +11,7 @@ import net.justlime.limeframegui.utilities.toGuiItem
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.inventory.Inventory
 
 /**
  * The Builder is a Blueprint: ChestGuiBuilder is a configuration object.
@@ -159,6 +160,15 @@ class ChestGuiBuilder(title: String = "Inventory", rows: Int = 6) {
     fun nav(block: Navigation.() -> Unit) {
         actions += ChestGuiActions.NAVIGATION to { Navigation(this, guiHandler).apply(block).build() }
     }
+
+    fun loadInventoryContents(inventory: Inventory){
+        for (i in 0 until inventory.size) {
+            val itemStack = inventory.getItem(i) ?: continue
+            val guiItem = itemStack.toGuiItem()
+            addItem(guiItem, i)
+        }
+    }
+
 
     /**
      * Executes all queued actions in their prioritized order and returns the fully configured GuiImpl handler.

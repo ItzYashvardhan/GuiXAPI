@@ -1,4 +1,4 @@
-package net.justlime.limeframegui.manager
+package net.justlime.limeframegui.utilities
 
 import net.justlime.limeframegui.enums.ColorType
 import net.kyori.adventure.text.Component
@@ -22,11 +22,17 @@ object ColorFormat {
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', text)
             ColorType.HEX -> translateHexToLegacy(text)
-            ColorType.MINI_MESSAGE -> toLegacyMini(text)
+            ColorType.MINI_MESSAGE -> toLegacyMini(text.replaceLegacyToMini())
         }
     }
 
-    fun applyColor(text: List<String>): List<String>{
+    private fun String.replaceLegacyToMini(): String {
+        return this.replace("§0", "<black>").replace("§1", "<dark_blue>").replace("§2", "<dark_green>").replace("§3", "<dark_aqua>").replace("§4", "<dark_red>").replace("§5", "<dark_purple>").replace("§6", "<gold>").replace("§7", "<gray>")
+            .replace("§8", "<dark_gray>").replace("§9", "<blue>").replace("§a", "<green>").replace("§b", "<aqua>").replace("§c", "<red>").replace("§d", "<light_purple>").replace("§e", "<yellow>").replace("§f", "<white>").replace("§l", "<bold>")
+            .replace("§m", "<strikethrough>").replace("§n", "<underlined>").replace("§o", "<italic>").replace("§r", "<reset>")
+    }
+
+    fun applyColor(text: List<String>): List<String> {
         return text.map { applyColor(it) }
     }
 
@@ -58,10 +64,9 @@ object ColorFormat {
     private fun toLegacyMini(text: String): String {
         return try {
             legacy.serialize(mini.deserialize(text))
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            println(e.message)
             ChatColor.translateAlternateColorCodes('&', text)
         }
     }
 }
-
-
