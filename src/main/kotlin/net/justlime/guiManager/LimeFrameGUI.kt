@@ -1,5 +1,6 @@
 package net.justlime.guiManager
 
+import net.justlime.guiManager.api.LimeFrameAPI
 import net.justlime.guiManager.example.commands.CommandManager
 import org.bukkit.plugin.java.JavaPlugin
 

@@ -1,4 +1,4 @@
-package net.justlime.guiManager
+package net.justlime.guiManager.api
 
 import net.justlime.guiManager.listener.InventoryListener
 import net.justlime.guiManager.listener.PluginListener

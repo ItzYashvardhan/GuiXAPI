@@ -24,8 +24,6 @@ dependencies {
     compileOnly(libs.spigot)
     compileOnly(libs.authlib)
     implementation(libs.kotlin)
-
-
     compileOnly(libs.annotation)
 }
 
@@ -33,6 +31,10 @@ dependencies {
 val targetJavaVersion = 8
 kotlin {
     jvmToolchain(targetJavaVersion)
+}
+
+tasks.shadowJar{
+    minimize()
 }
 
 tasks.build {

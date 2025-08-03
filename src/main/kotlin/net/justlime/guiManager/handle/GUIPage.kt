@@ -7,7 +7,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
 
 interface GUIPage {
-
+    val currentPage: Int
     fun getInventory(): Inventory
 
     fun getItems(): Map<Int, GuiItem>

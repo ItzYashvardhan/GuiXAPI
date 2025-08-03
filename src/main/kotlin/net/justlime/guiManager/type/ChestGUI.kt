@@ -1,7 +1,7 @@
 package net.justlime.guiManager.type
 
 import net.justlime.guiManager.builder.ChestGuiBuilder
-import net.justlime.guiManager.handle.GuiHandler
+import net.justlime.guiManager.impl.GuiHandler
 import org.bukkit.entity.Player
 
 /**

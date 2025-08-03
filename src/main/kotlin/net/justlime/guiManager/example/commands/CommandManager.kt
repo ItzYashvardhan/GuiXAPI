@@ -5,7 +5,7 @@ import net.justlime.guiManager.handle.CommandHandler
 import org.bukkit.plugin.java.JavaPlugin
 
 class CommandManager(val plugin: JavaPlugin) {
-    private val simpleGUI = SimpleGUICommand(plugin)
+    private val simpleGUI = SimpleGUICommand()
     private val commandList = mutableMapOf<String, CommandHandler>()
 
     init {

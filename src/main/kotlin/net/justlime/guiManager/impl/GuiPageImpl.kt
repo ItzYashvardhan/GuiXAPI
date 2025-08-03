@@ -1,8 +1,6 @@
 package net.justlime.guiManager.impl
 
-import com.google.common.collect.Multimaps.index
 import net.justlime.guiManager.handle.GUIPage
-import net.justlime.guiManager.handle.GuiHandler
 import net.justlime.guiManager.models.GUISetting
 import net.justlime.guiManager.models.GuiItem
 import net.justlime.guiManager.utilities.toGuiItem
@@ -12,8 +10,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
 
-class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, setting: GUISetting) : GUIPage {
-    private var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title)
+class GuiPageImpl(override val currentPage: Int, private val handler: GuiHandler, setting: GUISetting) : GUIPage {
+    private var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title.replace("{page}", currentPage.toString()))
 
     override fun getInventory(): Inventory {
         return inventory
@@ -32,7 +30,7 @@ class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, sett
         val slot = inventory.firstEmpty()
         if (slot != -1) {
             inventory.setItem(slot, item.toItemStack())
-            handler.itemClickHandler.computeIfAbsent(pageId) { mutableMapOf() }[slot] = onClick
+            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = onClick
 
         }
         return slot
@@ -43,7 +41,7 @@ class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, sett
             val slot = inventory.firstEmpty()
             if (slot != -1) {
                 inventory.setItem(slot, guiItem.toItemStack())
-                handler.itemClickHandler[pageId] = mutableMapOf(slot to { event -> onClick.invoke(guiItem, event) })
+                handler.itemClickHandler[currentPage] = mutableMapOf(slot to { event -> onClick.invoke(guiItem, event) })
             }
         }
     }
@@ -51,7 +49,7 @@ class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, sett
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)): Int {
         if (index < inventory.size) {
             inventory.setItem(index, item.toItemStack())
-            handler.itemClickHandler.computeIfAbsent(pageId) { mutableMapOf() }[index] = onClick
+            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = onClick
 
             return index
         }
@@ -63,7 +61,7 @@ class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, sett
         val slot = inventory.first(item.toItemStack())
         if (slot != -1) {
             inventory.setItem(slot, null)
-            handler.itemClickHandler[pageId]?.remove(slot)
+            handler.itemClickHandler[currentPage]?.remove(slot)
         }
         return this
     }
@@ -71,22 +69,22 @@ class GuiPageImpl(private val pageId: Int, private val handler: GuiHandler, sett
     override fun removeItem(slot: Int): GUIPage {
         if (slot >= -1 && slot < inventory.size) {
             inventory.setItem(slot, null)
-            handler.itemClickHandler[pageId]?.remove(slot)
+            handler.itemClickHandler[currentPage]?.remove(slot)
         }
         return this
     }
 
     override fun onOpen(handler: (InventoryOpenEvent) -> Unit) {
-        this.handler.pageOpenHandlers[pageId] = handler
+        this.handler.pageOpenHandlers[currentPage] = handler
 
     }
 
     override fun onClose(handler: (InventoryCloseEvent) -> Unit) {
-        this.handler.pageCloseHandlers[pageId] = handler
+        this.handler.pageCloseHandlers[currentPage] = handler
     }
 
     override fun onClick(handler: (InventoryClickEvent) -> Unit) {
-        this.handler.pageClickHandlers[pageId] = handler
+        this.handler.pageClickHandlers[currentPage] = handler
     }
 
 }

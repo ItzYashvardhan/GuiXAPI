@@ -1,9 +1,10 @@
-# GuiManager
+# LimeFrameGUI
 
-GuiManager is a powerful and flexible library for creating and managing in-game GUIs (Graphical User Interfaces) in Minecraft Bukkit/Spigot plugins. It simplifies the process of building interactive inventories, handling clicks, and managing multiple pages.
+LimeFrameGUI is a powerful and flexible library for creating and managing in-game GUIs (Graphical User Interfaces) in Minecraft Bukkit/Spigot plugins.
+It simplifies the process of building interactive inventories, handling clicks, and managing multiple pages.
+It is based on KotlinDSL
 
 ## Features
-
 - **Easy GUI Creation**: Quickly create custom inventories with specified titles and row counts.
 - **Item Management**: Add, set, and remove `GuiItem`s with associated click handlers.
 - **Multi-Page Support**: Organize complex GUIs into multiple pages for better navigation.
@@ -12,7 +13,6 @@ GuiManager is a powerful and flexible library for creating and managing in-game 
 - **Skull Textures**: Easily use custom player heads with textures.
 
 ## Installation
-
 1. **Download**: Download the latest release from the [releases page](link-to-releases-page).
 2. **Add to your project**: Add the downloaded JAR file to your plugin's `libs` folder (if using Gradle/Maven) or directly to your build path.
 3. **Dependency**: If you're using Maven or Gradle, add the following dependency to your `pom.xml` or `build.gradle` file:
@@ -28,8 +28,8 @@ GuiManager is a powerful and flexible library for creating and managing in-game 
 
    <dependency>
        <groupId>com.github.ItzYashvardhan</groupId>
-       <artifactId>GuiManager</artifactId>
-       <version>NOT-RELEASED-YET</version>
+       <artifactId>LimeFRAMEGUI</artifactId>
+       <version>1.0.0</version>
    </dependency>
    ```
 
@@ -40,13 +40,22 @@ GuiManager is a powerful and flexible library for creating and managing in-game 
    }
 
    dependencies {
-       implementation 'com.github.ItzYashvardhan:GuiManager:NOT-RELEASED-YET'
+       implementation 'com.github.ItzYashvardhan:LimeFrameGUI:1.0.0'
    }
    ```
 
 
 ---
 ## Usage
+
+
+### Initialize the api 
+```kotlin
+override fun onEnable() {
+    LimeFrameAPI.init(this)
+}
+```
+
 
 ### PREPARE ITEMS
 
@@ -61,30 +70,38 @@ val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 ```
 
 
-### CREATE GUI
+### CREATE SIMPLE GUI
 
 ```kotlin
-val gui = ChestGUI("Pager GUI", 6) {...}
+val gui = ChestGUI("Pager GUI", 6) {
+    //GUI Configuration Code Goes here
+}
 ```
-
 
 ### SETUP FUNCTIONALITIES
 
 ```kotlin
 ChestGUI("Pager GUI", 6) {
     
+    //Global Click handler
     onClick{ it.isCancelled = true }
     
-    
+    //Navigation
     nav {
         this.nextItem = nextItem
         this.prevItem = prevItem
         this.margin = 3
     }
    
+   //Global Open Event Handlers
     onOpen {
         sender.sendMessage("Opening")
     }
+   
+   //Global Close Event Handlers
+   onClose {
+       sender.sendMessage("Closing")
+   }
    
    addPage(title = "PAGE 1", gui = 3){
        addItem(item1) {
@@ -98,9 +115,10 @@ ChestGUI("Pager GUI", 6) {
    onPageClose{
        sender.sendMessage("Closing a Page")
    }
-   
+   l
 }
 ```
+**Order of Step doesn't matter** 
 
 
 

@@ -1,5 +1,6 @@
-package net.justlime.guiManager.handle
+package net.justlime.guiManager.impl
 
+import net.justlime.guiManager.handle.GUI
 import net.justlime.guiManager.models.GUISetting
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -116,7 +117,7 @@ class GuiHandler(private val setting: GUISetting) : GUI {
     /**
      * Handles inventory close events and cleans up player tracking to prevent memory leaks.
      */
-    override fun onEvent(event: InventoryCloseEvent,plugin: JavaPlugin) {
+    override fun onEvent(event: InventoryCloseEvent, plugin: JavaPlugin) {
         val player = event.player as? Player ?: return
         val pageId = getCurrentPage(player)
 

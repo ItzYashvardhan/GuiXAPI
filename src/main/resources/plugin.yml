@@ -1,4 +1,4 @@
-name: GuiManager
+name: LimeFrameGUI
 version: '1.0'
 main: net.justlime.guiManager.LimeFrameGUI
 api-version: '1.21'
