@@ -1,6 +1,7 @@
 package net.justlime.limeframegui.handle
 
 import net.justlime.limeframegui.api.LimeFrameAPI
+import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.models.ConfigKeys
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.utilities.toGuiItem
@@ -16,6 +17,8 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
 
     companion object {
         var keys: ConfigKeys = ConfigKeys()
+
+        var colorType: ColorType = ColorType.LEGACY
 
         fun setKeys(customizer: ConfigKeys.() -> Unit) {
             keys.customizer()

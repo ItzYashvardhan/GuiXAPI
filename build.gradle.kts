@@ -25,6 +25,9 @@ dependencies {
     compileOnly(libs.authlib)
     compileOnly(libs.kotlin)
     compileOnly(libs.annotation)
+    compileOnly(libs.adventure.platform)
+    compileOnly(libs.adventure.minimessage)
+
 }
 
 

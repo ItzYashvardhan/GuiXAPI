@@ -16,29 +16,35 @@ bstats = "3.1.0"
 annotaiton = "23.0.0"
 
 # Implementation
-nashorn = "15.6"
 adventure-platform = "4.4.0"
 adventure-minimessage = "4.21.0"
 
 [libraries]
-# Compile only
+#Core
+kotlin = {module= "org.jetbrains.kotlin:kotlin-stdlib-jdk8"}
 spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
-vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }
+
+#For skull
 authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
+
+#PlaceHolderAPI Support
+papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
+
+#Mini Message
+adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
+adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+
+
+vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }
 headdb = { module = "com.arcaniax:HeadDatabase-API", version.ref = "headdb" }
 itemsadder = { module = "com.github.LoneDev6:api-itemsadder", version.ref = "itemsadder" }
 nexo = { module = "com.nexomc:nexo", version.ref = "nexo" }
 oraxen = { module = "io.th0rgal:oraxen", version.ref = "oraxen" }
 mythiclib = { module = "io.lumine:MythicLib-dist", version.ref = "mythiclib"}
 mmoitems = { module = "net.Indyuce:MMOItems-API", version.ref = "mmoitems" }
-papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
 score = { module = "com.github.Ssomar-Developement:SCore", version.ref = "score" }
 sig = { module = "io.github.valerashimchuck:simpleitemgenerator-api", version.ref = "sig" }
 annotation = {module = "org.jetbrains:annotations",version.ref = "annotaiton"}
 
-# Implementation
-kotlin = {module= "org.jetbrains.kotlin:kotlin-stdlib-jdk8"}
-nashorn = { module = "org.openjdk.nashorn:nashorn-core", version.ref = "nashorn" }
-adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
-adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+
 bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
