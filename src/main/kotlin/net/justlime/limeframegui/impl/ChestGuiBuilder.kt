@@ -6,7 +6,6 @@ import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.utilities.toGuiItem
-import net.kyori.adventure.title.Title.title
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
@@ -17,9 +16,9 @@ import org.bukkit.inventory.Inventory
  * Its job is to exist before any player interacts with the GUI.
  * Use it to define the layout, the pages, and the rules. It's like an architect's blueprint for a house.
  */
-class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
+class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
 
-    val setting = GUISetting( rows,title)
+    val setting = GUISetting(rows, title)
 
     // Pages are temporarily stored here before being moved to the handler.
     val pages = mutableMapOf<Int, GUIPage>()
@@ -74,12 +73,12 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
      * Adds a page with a specific, unique ID.
      * Throws an error if the ID is already in use or is the reserved global ID.
      */
-    fun addPage(id: Int,  rows: Int = this.setting.rows,title: String = this.setting.title, block: GUIPage.() -> Unit) {
+    fun addPage(id: Int, rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
         actions.add(ChestGuiActions.PAGE_MANAGEMENT to {
             if (id == ChestGUI.Companion.GLOBAL_PAGE) throw IllegalArgumentException("Cannot overwrite the global page (ID 0).")
             if (pages.containsKey(id)) throw IllegalArgumentException("A page with ID $id already exists.")
 
-            val newPage = createPage(id, GUISetting( rows,title))
+            val newPage = createPage(id, GUISetting(rows, title))
             pages[id] = newPage
             newPage.apply(block)
         })
@@ -88,11 +87,11 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
     /**
      * Adds a page with an automatically assigned, incremental ID. This is the recommended approach.
      */
-    fun addPage( rows: Int = this.setting.rows,title: String = this.setting.title, block: GUIPage.() -> Unit) {
+    fun addPage(rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
         actions.add(ChestGuiActions.PAGE_MANAGEMENT to {
             // This logic correctly finds the next available ID, avoiding conflicts with GLOBAL_PAGE.
             val newId = (pages.keys.maxOrNull() ?: 0) + 1
-            val newPage = createPage(newId, GUISetting( rows,title))
+            val newPage = createPage(newId, GUISetting(rows, title))
             pages[newId] = newPage
             newPage.apply(block)
         })
@@ -121,10 +120,9 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
 
     // --- Item Management ---
 
-    fun addItem(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
-        if (!visibleCondition()) return
+    fun addItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition()) {
+            if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
@@ -136,8 +134,9 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
         }
     }
 
-    fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun addItem(items: List<GuiItem>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
+            if (items.isEmpty() || !visibleCondition()) return@to
             val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
             // Get the map for the global page, or create it if it doesn't exist.
             val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
@@ -150,9 +149,9 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
         }
     }
 
-    fun setItem(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun setItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition()) {
+            if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
 
@@ -171,9 +170,9 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
         }
     }
 
-    fun setItems(item: GuiItem, visibleCondition: () -> Boolean = { true }, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
+    fun setItems(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition()) {
+            if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
 
@@ -193,9 +192,9 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
         }
     }
 
-    fun setItem(item: GuiItem, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun setItem(item: GuiItem?, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition() && slot != null) {
+            if (visibleCondition() && slot != null && item != null) {
                 val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
                 val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
@@ -206,14 +205,16 @@ class ChestGuiBuilder( rows: Int = 6,title: String = "Inventory",) {
         }
     }
 
-    fun setItem(items: GuiItem, slot: List<Int>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun setItem(items: GuiItem?, slot: List<Int>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
-            val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+            if (visibleCondition() && items != null) {
+                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
 
-            slot.forEach { currentSlot ->
-                globalPage.setItem(currentSlot, items)
-                clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
+                slot.forEach { currentSlot ->
+                    globalPage.setItem(currentSlot, items)
+                    clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
+                }
             }
         }
     }
