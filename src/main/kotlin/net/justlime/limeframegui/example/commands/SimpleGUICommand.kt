@@ -1,13 +1,13 @@
 package net.justlime.limeframegui.example.commands
 
-import net.justlime.limeframegui.builder.Navigation
 import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
 import net.justlime.limeframegui.impl.ConfigHandler
-import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
+import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.toGuiItem
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -62,7 +62,7 @@ class SimpleGUICommand() : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-        ChestGUI("Pager GUI", 6) {
+        ChestGUI( 6,"Pager GUI") {
 
             nav {
                 this.nextItem = nextItem
@@ -82,7 +82,7 @@ class SimpleGUICommand() : CommandHandler {
             //This item added to every page
             setItem(item3)
 
-            addPage("Page {page}", 6) {
+            addPage( 6,"Page {page}") {
                 //this item added to specific page only (page 1)
                 addItem(item1) {
                     it.whoClicked.sendMessage("Clicked on Item 1")
@@ -108,7 +108,7 @@ class SimpleGUICommand() : CommandHandler {
                 }
             }
 
-            addPage("Page {page}", 4) {
+            addPage( 4,"Page {page}") {
                 addItem(item4) {
                     it.whoClicked.sendMessage("Clicked on Item ${it.slot} at page $currentPage")
                 }
@@ -121,12 +121,12 @@ class SimpleGUICommand() : CommandHandler {
     }
 
     fun simpleGUI(): ChestGUI {
-        return ChestGUI("Simple GUI", 6) {
+        return ChestGUI( 6,"Simple GUI") {
             onClick { it.isCancelled = true }
 
             val item = ItemStack(Material.DIAMOND).toGuiItem().apply {
                 displayName = "§aClick Me!"
-                lore = listOf("§7This is a simple item.")
+                lore = mutableListOf("§7This is a simple item.")
             }
 
             addItem(item) {
@@ -137,7 +137,7 @@ class SimpleGUICommand() : CommandHandler {
 
     fun homePage(player: Player) {
 
-        ChestGUI("Home Page", 1) {
+        ChestGUI( 1,"Home Page") {
             val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { displayName = "Open Simple GUI" }
 
             addItem(simpleItem) {
@@ -158,10 +158,10 @@ class SimpleGUICommand() : CommandHandler {
         FrameColor.colorType = ColorType.MINI_MESSAGE
 
         val config = ConfigHandler("config.yml")
-        val inventory = config.loadInventoryBase64("inventory")
         val setting = config.loadInventorySetting("inventory")
+        val inventory = config.loadInventoryBase64("inventory") ?: Bukkit.createInventory(null,setting.rows,setting.title)
 
-        ChestGUI(setting.title, setting.rows) {
+        ChestGUI( setting.rows,setting.title) {
 
             onOpen {
             }

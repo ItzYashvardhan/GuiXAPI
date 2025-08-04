@@ -1,10 +1,10 @@
 package net.justlime.limeframegui.impl
 
 import net.justlime.limeframegui.api.LimeFrameAPI
-import net.justlime.limeframegui.utilities.FrameConverter
 import net.justlime.limeframegui.models.ConfigKeys
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
+import net.justlime.limeframegui.utilities.FrameConverter
 import net.justlime.limeframegui.utilities.toGuiItem
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -57,12 +57,12 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         return runCatching { configToSave.save(file) }.isSuccess
     }
 
-    fun loadItem(path: String): GuiItem {
-        val section = config.getConfigurationSection(path) ?: throw IllegalArgumentException("Section '$path' not found in $filename")
+    fun loadItem(path: String): GuiItem? {
+        val section = config.getConfigurationSection(path) ?: return null
 
         return with(section) {
             GuiItem(
-                material = Material.getMaterial(getString(keys.material) ?: "STONE") ?: Material.STONE,
+                material = Material.getMaterial(getString(keys.material) ?: "AIR") ?: Material.AIR,
                 displayName = getString(keys.name) ?: "",
                 lore = getStringList(keys.lore),
                 glow = getBoolean(keys.glow, false),
@@ -76,19 +76,18 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         }
     }
 
-    fun loadItemBase64(path: String): ItemStack {
-        val encodedItem = config.getString(path) ?: return ItemStack(Material.AIR)
-        return FrameConverter.deserializeItemStack(encodedItem) ?: ItemStack(Material.AIR)
+    fun loadItemBase64(path: String): ItemStack? {
+        val encodedItem = config.getString(path) ?: return null
+        return FrameConverter.deserializeItemStack(encodedItem)
     }
 
-    fun saveItems(path: String, sectionName: String, items: List<GuiItem>): Boolean {
+    fun saveItems(path: String, items: List<GuiItem>): Boolean {
         val file = File(dataFolder, filename)
         val configToSave = loadOrCreateYaml()
 
         val baseSection = configToSave.createSection(path)
-        baseSection.set("title", sectionName)
 
-        val itemsSection = baseSection.createSection("items")
+        val itemsSection = baseSection.createSection(keys.inventoryItemSection)
         val itemMap = mutableMapOf<GuiItem, MutableList<Int>>()
 
         for ((index, item) in items.withIndex()) {
@@ -110,20 +109,19 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         return runCatching { configToSave.save(file) }.isSuccess
     }
 
-    fun saveItemsBase64(path: String, sectionName: String, item: ItemStack): Boolean {
+    fun saveItemsBase64(path: String, item: ItemStack): Boolean {
         val file = File(dataFolder, filename)
         val configToSave = loadOrCreateYaml()
 
         val section = configToSave.createSection(path)
         val encodedItem = FrameConverter.serializeItemStack(item)
-        section.set("data", encodedItem)
-        section.set("title", sectionName)
+        section.set(keys.base64Data, encodedItem)
 
         return runCatching { configToSave.save(file) }.isSuccess
     }
 
     fun loadItems(path: String): List<GuiItem> {
-        val section = config.getConfigurationSection(path) ?: throw IllegalArgumentException("Section '$path' not found in $filename")
+        val section = config.getConfigurationSection(path) ?: return emptyList<GuiItem>()
 
         return section.getKeys(false).mapNotNull { key ->
             section.getConfigurationSection(key)?.let {
@@ -133,23 +131,23 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
     }
 
     fun loadItemsBase64(path: String): List<ItemStack> {
-        val encodedItems = config.getString(path) ?: return emptyList()
+        val encodedItems = config.getString(path) ?: return emptyList<ItemStack>()
         return FrameConverter.deserializeItemStackList(encodedItems) ?: emptyList()
     }
 
-    fun loadInventory(path: String): Inventory {
-        val section = config.getConfigurationSection(path) ?: return Bukkit.createInventory(null, 9, "Inventory")
+    fun loadInventory(path: String): Inventory? {
+        val section = config.getConfigurationSection(path) ?: return null
 
-        val size = section.getInt("rows", 9)
-        val title = section.getString("title", "Inventory") ?: "Inventory"
+        val size = section.getInt(keys.inventoryRows, 9)
+        val title = section.getString(keys.inventoryTitle, keys.defaultInventoryTitle) ?: keys.defaultInventoryTitle
         val inventory = Bukkit.createInventory(null, size, title)
 
-        val itemsSection = section.getConfigurationSection("items") ?: return inventory
+        val itemsSection = section.getConfigurationSection(keys.inventoryItemSection) ?: return inventory
 
         for (key in itemsSection.getKeys(false)) {
             val slot = key.toIntOrNull() ?: continue
-            val itemSection = itemsSection.getConfigurationSection(key) ?: continue
-            val item = loadItem("$path.items.$key")
+            val item = loadItem("$path.${keys.inventoryItemSection}.$key")
+            if (item == null) continue
             inventory.setItem(slot, item.toItemStack())
         }
 
@@ -157,41 +155,39 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
     }
 
     fun loadInventorySetting(path: String): GUISetting {
-        val section = config.getConfigurationSection(path) ?: return GUISetting("LimeFrameGUI", 6)
-        val title = section.getString("title", "GUI") ?: "LimeFrameGUI"
-        val rows = section.getInt("rows", 6)
-        return GUISetting(title, rows)
+        val section = config.getConfigurationSection(path) ?: return GUISetting(keys.defaultInventoryRows, keys.defaultInventoryTitle)
+        val title = section.getString(keys.inventoryTitle, keys.defaultInventoryTitle) ?: keys.defaultInventoryTitle
+        val rows = section.getInt(keys.inventoryRows, keys.defaultInventoryRows)
+        return GUISetting(rows, title)
     }
 
-    fun loadInventoryBase64(path: String, defaultTitle: String = "Inventory"): Inventory {
-        val encodedInventory = config.getString("$path.data") ?: return Bukkit.createInventory(null, 9, defaultTitle)
-        val title = config.getString("$path.title") ?: defaultTitle
-        return FrameConverter.deserializeInventory(encodedInventory) ?: Bukkit.createInventory(null, 9, title)
+    fun loadInventoryBase64(path: String, defaultTitle: String = keys.defaultInventoryTitle): Inventory? {
+        val encodedInventory = config.getString("$path.${keys.base64Data}") ?: return null
+        config.getString("$path.${keys.inventoryTitle}") ?: defaultTitle
+        return FrameConverter.deserializeInventory(encodedInventory)
     }
 
-
-    fun saveInventoryBase64(path: String, inventory: Inventory, title: String = "Inventory"): Boolean {
+    fun saveInventoryBase64(path: String, inventory: Inventory, title: String = keys.defaultInventoryTitle): Boolean {
         val file = File(dataFolder, filename)
         val configToSave = loadOrCreateYaml()
 
         val encodedInventory = FrameConverter.serializeInventory(inventory)
-        configToSave.set("$path.data", encodedInventory)
-        configToSave.set("$path.title", title)
-        configToSave.set("$path.rows", inventory.size / 9)
+        configToSave.set("$path.${keys.base64Data}", encodedInventory)
+        configToSave.set("$path.${keys.inventoryTitle}", title)
+        configToSave.set("$path.${keys.inventoryRows}", inventory.size / 9)
 
         return runCatching { configToSave.save(file) }.isSuccess
     }
 
-
-    fun saveInventory(path: String, inventory: Inventory, inventoryTitle: String = "Inventory"): Boolean {
+    fun saveInventory(path: String, inventory: Inventory, inventoryTitle: String = keys.defaultInventoryTitle): Boolean {
         val file = File(dataFolder, filename)
         val configToSave = loadOrCreateYaml()
 
         val section = configToSave.createSection(path)
-        section.set("rows", inventory.size.div(9))
-        section.set("title", inventoryTitle)
+        section.set(keys.inventoryRows, inventory.size.div(9))
+        section.set(keys.inventoryTitle, inventoryTitle)
 
-        val itemsSection = section.createSection("items")
+        val itemsSection = section.createSection(keys.inventoryItemSection)
         val itemMap = mutableMapOf<GuiItem, MutableList<Int>>()
 
         for (i in 0 until inventory.size) {
@@ -221,8 +217,8 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         val configToSave = loadOrCreateYaml()
 
         val section = configToSave.createSection(path)
-        section.set("title", setting.title)
-        section.set("rows", setting.rows)
+        section.set(keys.inventoryTitle, setting.title)
+        section.set(keys.inventoryRows, setting.rows)
 
         return runCatching { configToSave.save(file) }.isSuccess
     }

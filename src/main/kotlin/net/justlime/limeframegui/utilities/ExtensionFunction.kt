@@ -13,7 +13,7 @@ import java.util.*
 fun ItemStack.toGuiItem(): GuiItem {
     val meta = this.itemMeta
 
-    val displayName = meta?.displayName ?: "Unnamed"
+    val displayName = meta?.displayName ?: this.type.name
     val lore = meta?.lore ?: emptyList()
     val glow = meta?.hasEnchants() == true && meta.itemFlags.contains(ItemFlag.HIDE_ENCHANTS)
     val flags = meta?.itemFlags ?: emptySet()
@@ -29,7 +29,7 @@ fun ItemStack.toGuiItem(): GuiItem {
         displayName = displayName,
         material = type,
         amount = amount,
-        lore = lore,
+        lore = lore.toMutableList(),
         glow = glow,
         flags = flags,
         customModelData = customModelData,
