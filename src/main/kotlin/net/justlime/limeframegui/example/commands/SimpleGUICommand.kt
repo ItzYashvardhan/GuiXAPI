@@ -159,7 +159,7 @@ class SimpleGUICommand() : CommandHandler {
 
         val config = ConfigHandler("config.yml")
         val setting = config.loadInventorySetting("inventory")
-        val inventory = config.loadInventoryBase64("inventory") ?: Bukkit.createInventory(null,setting.rows,setting.title)
+        val inventory = config.loadInventory("inventory") ?: Bukkit.createInventory(null,setting.rows*9,setting.title)
 
         ChestGUI( setting.rows,setting.title) {
 
@@ -169,7 +169,7 @@ class SimpleGUICommand() : CommandHandler {
 
             onClose {
                 val inventory = pages[GLOBAL_PAGE]?.getInventory() ?: return@onClose //Definitely not happening
-                config.saveInventoryBase64("inventory", inventory, setting.title)
+                config.saveInventory("inventory", inventory, setting.title)
             }
         }.open(player)
 

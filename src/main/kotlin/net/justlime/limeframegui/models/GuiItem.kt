@@ -46,13 +46,11 @@ data class GuiItem(var material: Material,
         }
 
         // Apply custom settings
-        if (displayName!=null) meta.setDisplayName(FrameColor.applyColor(displayName!!)) else meta.setDisplayName(null)
+        if (displayName != null) meta.setDisplayName(FrameColor.applyColor(displayName!!)) else meta.setDisplayName(null)
         if (lore.isNotEmpty()) meta.lore = FrameColor.applyColor(lore)
 
-        if (glow) {
-            meta.addEnchant(Enchantment.UNBREAKING, 1, true)
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
-        }
+        meta.setEnchantmentGlintOverride(glow)
+
         if (flags.isNotEmpty()) meta.addItemFlags(*flags.filterNotNull().toTypedArray())
         if (customModelData != null) meta.setCustomModelData(customModelData)
 

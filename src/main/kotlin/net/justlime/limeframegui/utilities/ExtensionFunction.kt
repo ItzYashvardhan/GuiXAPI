@@ -15,7 +15,7 @@ fun ItemStack.toGuiItem(): GuiItem {
 
     val displayName = meta?.displayName ?: this.type.name
     val lore = meta?.lore ?: emptyList()
-    val glow = meta?.hasEnchants() == true && meta.itemFlags.contains(ItemFlag.HIDE_ENCHANTS)
+    val glow = meta?.enchantmentGlintOverride ?: false
     val flags = meta?.itemFlags ?: emptySet()
     val customModelData = if (meta?.hasCustomModelData() == true) meta.customModelData else null
 
