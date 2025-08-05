@@ -9,18 +9,19 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 
-data class GuiItem(var material: Material,
-                   var displayName: String? = "",
-                   var amount: Int = 1,
-                   var lore: MutableList<String> = mutableListOf(),
-                   var glow: Boolean = false,
-                   var flags: Collection<ItemFlag?> = emptyList(),
-                   var customModelData: Int? = null,
-                   var skullTexture: String? = null,
-                   var slot: Int? = null, //Store object slot
-                   var slotList: MutableList<Int> = mutableListOf(), //to store single item in many slots
-                   var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data can be used later like template"
-                   var key: String? = null
+data class GuiItem(
+    var material: Material,
+    var displayName: String? = "",
+    var amount: Int = 1,
+    var lore: MutableList<String> = mutableListOf(),
+    var glow: Boolean = false,
+    var flags: Collection<ItemFlag?> = emptyList(),
+    var customModelData: Int? = null,
+    var skullTexture: String? = null,
+    var slot: Int? = null, //Store object slot
+    var slotList: MutableList<Int> = mutableListOf(), //to store single item in many slots
+    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data can be used later like template"
+    var key: String? = null
 ) {
 
     companion object {
@@ -32,29 +33,72 @@ data class GuiItem(var material: Material,
 
     //THIS THING RIGHT THERE IS RESPONSIBLE FOR YOUR PRECIOUS ITEM FOUND IN BLOCKY CHEST
     fun toItemStack(): ItemStack {
-        val item = if (material == Material.PLAYER_HEAD && !skullTexture.isNullOrEmpty()) {
-            ItemStack(Material.PLAYER_HEAD)
+        val item = if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !skullTexture.isNullOrEmpty()) {
+            ItemStack(Material.matchMaterial("PLAYER_HEAD") ?: Material.matchMaterial("SKULL_ITEM")!!, amount)
         } else {
             ItemStack(material, amount)
         }
 
         val meta = item.itemMeta ?: return item
 
-        // If it's a head, apply profile from cache
+        // If it's a head, apply profile from cache (safe)
         if (meta is SkullMeta && !skullTexture.isNullOrEmpty()) {
-            meta.ownerProfile = SkullProfileCache.getProfile(skullTexture!!)
+            try {
+                // Paper API 1.18+
+                meta.ownerProfile = SkullProfileCache.getProfile(skullTexture!!)
+            } catch (_: Throwable) {
+                // Fallback for 1.8.8 or unsupported versions
+                try {
+                    val skullMetaClass = meta.javaClass
+                    val profileField = skullMetaClass.getDeclaredField("profile")
+                    profileField.isAccessible = true
+                    profileField.set(meta, SkullProfileCache.getProfile(skullTexture!!))
+                } catch (_: Throwable) {  }
+            }
         }
 
-        // Apply custom settings
-        if (displayName != null) meta.setDisplayName(FrameColor.applyColor(displayName!!)) else meta.setDisplayName(null)
-        if (lore.isNotEmpty()) meta.lore = FrameColor.applyColor(lore)
+        // Display name
+        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it) })
 
-        meta.setEnchantmentGlintOverride(glow)
+        // Lore
+        if (lore.isNotEmpty()) {
+            try {
+                meta.lore = FrameColor.applyColor(lore)
+            } catch (_: Throwable) {
+                meta.lore = lore
+            }
+        }
 
-        if (flags.isNotEmpty()) meta.addItemFlags(*flags.filterNotNull().toTypedArray())
-        if (customModelData != null) meta.setCustomModelData(customModelData)
+        // Enchantment glint override (1.20+)
+        try {
+            meta.setEnchantmentGlintOverride(glow)
+        } catch (_: Throwable) {
+            if (glow) {
+                try {
+                    meta.addEnchant(Enchantment.UNBREAKING, 1, true)
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
+                } catch (_: Throwable) {
+                    glow = false
+                }
+            }
+        }
+
+        // Item flags
+        try {
+            if (flags.isNotEmpty()) {
+                meta.addItemFlags(*flags.filterNotNull().toTypedArray())
+            }
+        } catch (_: Throwable) {
+        }
+
+        // CustomModelData (1.14+)
+        try {
+            if (customModelData != null) meta.setCustomModelData(customModelData)
+        } catch (_: Throwable) {
+        }
 
         item.itemMeta = meta
         return item
     }
 }
+

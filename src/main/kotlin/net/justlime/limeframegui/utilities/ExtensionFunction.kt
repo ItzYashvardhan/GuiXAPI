@@ -5,7 +5,6 @@ import com.mojang.authlib.properties.Property
 import net.justlime.limeframegui.models.GuiItem
 import org.bukkit.Material
 import org.bukkit.inventory.Inventory
-import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import java.util.*
@@ -15,7 +14,17 @@ fun ItemStack.toGuiItem(): GuiItem {
 
     val displayName = meta?.displayName ?: this.type.name
     val lore = meta?.lore ?: emptyList()
-    val glow = meta?.enchantmentGlintOverride ?: false
+    val glow = try {
+        if (meta?.hasEnchantmentGlintOverride() == true) {
+            meta.enchantmentGlintOverride
+        } else {
+            meta?.hasEnchants() == true // fallback for old versions
+        }
+    } catch (_: Throwable) {
+        meta?.hasEnchants() == true // fallback for 1.8.8
+    }
+
+
     val flags = meta?.itemFlags ?: emptySet()
     val customModelData = if (meta?.hasCustomModelData() == true) meta.customModelData else null
 

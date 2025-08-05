@@ -1,7 +1,6 @@
 package net.justlime.limeframegui.impl
 
 import net.justlime.limeframegui.api.LimeFrameAPI
-import net.justlime.limeframegui.models.ConfigKeys
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.utilities.FrameConverter
@@ -17,14 +16,7 @@ import java.io.File
 
 class ConfigHandler(private val filename: String, private val dataFolder: File = LimeFrameAPI.getPlugin().dataFolder) {
 
-    companion object {
-        var keys: ConfigKeys = ConfigKeys()
-
-        fun setKeys(customizer: ConfigKeys.() -> Unit) {
-            keys.customizer()
-        }
-
-    }
+    private val keys = LimeFrameAPI.keys
 
     private var file = File(dataFolder, filename)
     private var config: YamlConfiguration = loadYaml()
