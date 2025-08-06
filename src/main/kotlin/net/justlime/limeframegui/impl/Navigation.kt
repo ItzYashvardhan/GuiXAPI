@@ -18,9 +18,9 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
     var prevSlot: Int = -1
 
     fun build() {
-        val nextOnClick = { event: InventoryClickEvent ->
+        val nextOnClick = nextOnClick@{ event: InventoryClickEvent ->
             val player = event.whoClicked as Player
-            val currentPage = handler.getCurrentPage(player)
+            val currentPage = handler.getCurrentPage(player) ?: return@nextOnClick
             val maxPage = handler.pageInventories.keys.filter { it != ChestGUI.GLOBAL_PAGE }.maxOrNull() ?: currentPage
 
             if (currentPage < maxPage) {
@@ -30,9 +30,9 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
             }
         }
 
-        val prevOnClick = { event: InventoryClickEvent ->
+        val prevOnClick = prevOnClick@{ event: InventoryClickEvent ->
             val player = event.whoClicked as Player
-            val currentPage = handler.getCurrentPage(player)
+            val currentPage = handler.getCurrentPage(player) ?: return@prevOnClick
             val minPage = handler.pageInventories.keys.filter { it != ChestGUI.GLOBAL_PAGE }.minOrNull() ?: currentPage
 
             if (currentPage > minPage) {

@@ -3,6 +3,7 @@ package net.justlime.limeframegui.impl
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.type.ChestGUI
+import net.justlime.limeframegui.utilities.FrameColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -22,17 +23,17 @@ import org.bukkit.plugin.java.JavaPlugin
 class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
     private val hasTriggeredGlobalOpen = mutableSetOf<String>()
 
-    // A single, optional handler for global events.
+    /** A single, optional handler for global events. **/
     override var globalOpenHandler: ((InventoryOpenEvent) -> Unit)? = null
     override var globalCloseHandler: ((InventoryCloseEvent) -> Unit)? = null
     override var globalClickHandler: ((InventoryClickEvent) -> Unit)? = null
 
-    // Page-specific handlers, mapping a page ID to a single handler function.
+    /** Page-specific handlers, mapping a page ID to a single handler function**/
     override val pageOpenHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
     override val pageCloseHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
     override val pageClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
 
-    // A single, unified map for all item-specific click handlers.
+    /** A single, unified map for all item-specific click handlers.**/
     // Structure: Page ID -> (Slot -> Handler)
     override val itemClickHandler = mutableMapOf<Int, MutableMap<Int, (InventoryClickEvent) -> Unit>>()
 
@@ -63,11 +64,22 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
         player.openInventory(inventoryToOpen)
     }
 
-    // --- Interface and Event Handler Implementation ---
-
+    /**
+     * The base Inventory of Page. It means its content will copy to all pages.
+     */
     override fun getInventory(): Inventory {
-        // Return the global page (0) inventory by default, or an empty one if it doesn't exist.
-        return pageInventories[ChestGUI.GLOBAL_PAGE] ?: Bukkit.createInventory(this, setting.rows * 9, setting.title)
+        return pageInventories[ChestGUI.GLOBAL_PAGE] ?: createPageInventory(ChestGUI.GLOBAL_PAGE, setting)
+    }
+
+    override fun createPageInventory(id: Int, setting: GUISetting): Inventory {
+
+        val size = setting.rows * 9
+        val title = setting.title.replace("{page}", id.toString())
+        val coloredTitle = FrameColor.applyColor(title)
+
+        val inv = Bukkit.createInventory(this, size, coloredTitle)
+        pageInventories[id] = inv
+        return inv
     }
 
     /**
@@ -80,8 +92,8 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
     /**
      * Gets the current page a player is viewing. Defaults to 0.
      */
-    override fun getCurrentPage(player: Player): Int {
-        return currentPages[player.name] ?: 0
+    override fun getCurrentPage(player: Player): Int? {
+        return currentPages[player.name]
     }
 
     /**
@@ -105,15 +117,15 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
     override fun onEvent(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
         val slot = event.slot
-        val pageId = getCurrentPage(player)
+        val pageId = getCurrentPage(player) ?: return
 
         // Priority 1: Page-and-slot-specific handler.
         itemClickHandler[pageId]?.get(slot)?.invoke(event)
 
-        // Priority 3: Page-wide click handler.
+        // Priority 2: Page-wide click handler.
         pageClickHandlers[pageId]?.invoke(event)
 
-        // Priority 4: Global click handler.
+        // Priority 3: Global click handler.
         globalClickHandler?.invoke(event)
     }
 

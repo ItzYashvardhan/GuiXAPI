@@ -11,7 +11,9 @@ import org.bukkit.plugin.java.JavaPlugin
  * */
 object LimeFrameAPI {
     private lateinit var plugin: JavaPlugin
+    var debugging: Boolean = false
     var keys: ConfigKeys = ConfigKeys()
+
     fun init(plugin: JavaPlugin) {
         this.plugin = plugin
         Bukkit.getPluginManager().registerEvents(InventoryListener(plugin), plugin)
@@ -19,7 +21,6 @@ object LimeFrameAPI {
         //run a task on plugin disable
         Bukkit.getPluginManager().registerEvents(PluginListener(), plugin)
     }
-
 
     fun setKeys(customizer: ConfigKeys.() -> Unit) {
         keys.customizer()

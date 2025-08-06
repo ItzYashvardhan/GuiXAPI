@@ -5,13 +5,13 @@ import net.justlime.limeframegui.handle.GUIPage
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.utilities.toGuiItem
-import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 
-class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting) : GUIPage {
-    override var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title.replace("{page}", currentPage.toString()))
+class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting,private val builder: ChestGUIBuilder) : GUIPage {
+    override var inventory = handler.createPageInventory(currentPage, setting)
 
     override fun getItems(): Map<Int, GuiItem> {
         val items = mutableMapOf<Int, GuiItem>()
@@ -81,6 +81,23 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
 
     override fun onClick(handler: (InventoryClickEvent) -> Unit) {
         this.handler.pageClickHandlers[currentPage] = handler
+    }
+
+    override fun addPage(id: Int, rows: Int, title: String, block: GUIPage.() -> Unit) {
+        builder.addPage(id, rows, title, block)
+    }
+
+    override fun addPage(rows: Int, title: String, block: GUIPage.() -> Unit) {
+        builder.addPage(rows, title, block)
+    }
+
+
+    override fun nav(block: Navigation.() -> Unit) {
+        builder.nav(block)
+    }
+
+    override fun openPage(player: Player, id: Int) {
+       handler.open(player,id)
     }
 
 }

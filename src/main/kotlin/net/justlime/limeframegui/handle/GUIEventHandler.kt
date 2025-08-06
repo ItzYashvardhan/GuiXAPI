@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.handle
 
+import net.justlime.limeframegui.models.GUISetting
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -8,6 +9,11 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.plugin.java.JavaPlugin
 
+/**
+ *  * Handles all GUI-related events and manages the state of open GUIs.
+ * This interface defines the contract for how GUI events are processed
+ * and how GUI pages are managed.
+ **/
 interface GUIEventHandler : InventoryHolder {
 
     /** Global event handlers that apply to all pages.**/
@@ -46,7 +52,9 @@ interface GUIEventHandler : InventoryHolder {
     val currentPages: MutableMap<String, Int>
 
     fun setCurrentPage(player: Player, page: Int)
-    fun getCurrentPage(player: Player): Int
+    fun getCurrentPage(player: Player): Int?
+    fun createPageInventory(id: Int, setting: GUISetting): Inventory
+
 
     /** Register inventory open events to Inventory Listener.**/
     fun onEvent(event: InventoryOpenEvent)

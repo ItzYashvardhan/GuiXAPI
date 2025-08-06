@@ -18,7 +18,8 @@ class SimpleGUICommand() : CommandHandler {
     override val permission: String = ""
     override val aliases: List<String> = mutableListOf()
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    override fun onCommand(
+        sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): Boolean {
         if (sender !is Player) {
             return true
@@ -39,14 +40,21 @@ class SimpleGUICommand() : CommandHandler {
                 homePage(sender)
             }
 
+            "nested" -> {
+                nestedPage(sender)
+            }
+
             else -> {}
         }
         return true
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String?>
-    ): List<String?>? {
-        return listOf("save", "page", "home")
+    override fun onTabComplete(
+        sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    ): List<String?> {
+        val completion = mutableListOf<String>()
+        if (args.isNotEmpty()) completion.addAll(listOf("save", "page", "home", "nested"))
+        return completion
     }
 
     fun pageExample(player: Player) {
@@ -62,7 +70,7 @@ class SimpleGUICommand() : CommandHandler {
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
 
-        ChestGUI( 6,"Pager GUI") {
+        ChestGUI(6, "Pager GUI") {
 
             nav {
                 this.nextItem = nextItem
@@ -73,16 +81,10 @@ class SimpleGUICommand() : CommandHandler {
             //Global Click handler
             onClick { it.isCancelled = true }
 
-            onOpen { player.sendMessage("Opening") } //Run once when a new gui instance open
-            onPageOpen { player.sendMessage("Opening a Page") } //Run everytime when a new page open
-
-            onClose { player.sendMessage("Closing") }
-            onPageClose { player.sendMessage("Closing a Page") }
-
             //This item added to every page
             setItem(item3)
 
-            addPage( 6,"Page {page}") {
+            addPage(6, "Page {page}") {
                 //this item added to specific page only (page 1)
                 addItem(item1) {
                     it.whoClicked.sendMessage("Clicked on Item 1")
@@ -108,7 +110,7 @@ class SimpleGUICommand() : CommandHandler {
                 }
             }
 
-            addPage( 4,"Page {page}") {
+            addPage(4, "Page {page}") {
                 addItem(item4) {
                     it.whoClicked.sendMessage("Clicked on Item ${it.slot} at page $currentPage")
                 }
@@ -121,7 +123,7 @@ class SimpleGUICommand() : CommandHandler {
     }
 
     fun simpleGUI(): ChestGUI {
-        return ChestGUI( 6,"Simple GUI") {
+        return ChestGUI(6, "Simple GUI") {
             onClick { it.isCancelled = true }
 
             val item = ItemStack(Material.DIAMOND).toGuiItem().apply {
@@ -137,7 +139,7 @@ class SimpleGUICommand() : CommandHandler {
 
     fun homePage(player: Player) {
 
-        ChestGUI( 1,"Home Page") {
+        ChestGUI(1, "Home Page") {
             val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { displayName = "Open Simple GUI" }
 
             addItem(simpleItem) {
@@ -159,17 +161,41 @@ class SimpleGUICommand() : CommandHandler {
 
         val config = ConfigHandler("config.yml")
         val setting = config.loadInventorySetting("inventory")
-        val inventory = config.loadInventory("inventory") ?: Bukkit.createInventory(null,setting.rows*9,setting.title)
+        val inventory = config.loadInventory("inventory") ?: Bukkit.createInventory(null, setting.rows * 9, setting.title)
 
-        ChestGUI( setting.rows,setting.title) {
+        ChestGUI(setting.rows, setting.title) {
 
-            onOpen {
-            }
+            onOpen {}
             loadInventoryContents(inventory)
 
             onClose {
                 val inventory = pages[GLOBAL_PAGE]?.inventory ?: return@onClose //Definitely not happening
                 config.saveInventory("inventory", inventory, setting.title)
+            }
+        }.open(player)
+
+    }
+
+    fun nestedPage(player: Player) {
+
+        ChestGUI(6, "Nested GUI") {
+            onClick { it.isCancelled = true }
+
+            addPage(6, "Page 1") {
+
+                println("Added Page $currentPage")
+
+                addPage(3, 5, "Page 11") {
+                    addItem(ItemStack(Material.DIAMOND).toGuiItem().apply { displayName = "Go to Nested Page 1" })
+                    openPage(player,1)
+                    println("Added Page $currentPage")
+                }
+
+                addItem(ItemStack(Material.STONE).toGuiItem().apply { displayName = "Go to Nested Page 2" }) {
+                    openPage(player, 2)
+                }
+
+
             }
         }.open(player)
 

@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ChestGuiActions
 import net.justlime.limeframegui.handle.GUIPage
 import net.justlime.limeframegui.models.GUISetting
@@ -28,11 +29,13 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
 
     // All configuration steps are queued as prioritized actions to be executed in order during build().
     private val actions = mutableListOf<Pair<ChestGuiActions, () -> Unit>>()
+    private var currentExecutingAction: ChestGuiActions? = null
+
 
     init {
         // The global page (ID 0) is created immediately to hold shared items.
         // It uses the GuiImpl as its holder, which is a key part of the design.
-        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting)
+        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting,this)
     }
 
     // --- Global Event Handlers ---
@@ -74,13 +77,15 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
      * Throws an error if the ID is already in use or is the reserved global ID.
      */
     fun addPage(id: Int, rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
-        actions.add(ChestGuiActions.PAGE_MANAGEMENT to {
+        if (LimeFrameAPI.debugging) println("Queued Page $id")
+        actions += (ChestGuiActions.PAGE_ITEMS to {
+            if (LimeFrameAPI.debugging) println("Starting Execution of Page $id")
             if (id == ChestGUI.GLOBAL_PAGE) throw IllegalArgumentException("Cannot overwrite the global page (ID 0).")
             if (pages.containsKey(id)) throw IllegalArgumentException("A page with ID $id already exists.")
-
             val newPage = createPage(id, GUISetting(rows, title))
             pages[id] = newPage
             newPage.apply(block)
+            if (LimeFrameAPI.debugging) println("Finished Execution of Page $id")
         })
     }
 
@@ -88,12 +93,14 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
      * Adds a page with an automatically assigned, incremental ID. This is the recommended approach.
      */
     fun addPage(rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
-        actions.add(ChestGuiActions.PAGE_MANAGEMENT to {
-            // This logic correctly finds the next available ID, avoiding conflicts with GLOBAL_PAGE.
+        if (LimeFrameAPI.debugging) println("Queued Page ${(pages.keys.maxOrNull() ?: 0) + 1}")
+        actions += (ChestGuiActions.PAGE_ITEMS to {
             val newId = (pages.keys.maxOrNull() ?: 0) + 1
+            if (LimeFrameAPI.debugging) println("Starting Execution of Page $newId")
             val newPage = createPage(newId, GUISetting(rows, title))
             pages[newId] = newPage
             newPage.apply(block)
+            if (LimeFrameAPI.debugging) println("Finished Execution of Page $newId")
         })
     }
 
@@ -101,7 +108,7 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
      * Creates a new page, correctly copying all items and handlers from the global page.
      */
     private fun createPage(pageId: Int, setting: GUISetting): GUIPage {
-        val newPage = GuiPageImpl(pageId, guiHandler, setting)
+        val newPage = GuiPageImpl(pageId, guiHandler, setting,this)
 
         // Copy items from the global page's inventory to the new page.
         pages[ChestGUI.GLOBAL_PAGE]?.inventory?.contents?.forEachIndexed { index, itemStack ->

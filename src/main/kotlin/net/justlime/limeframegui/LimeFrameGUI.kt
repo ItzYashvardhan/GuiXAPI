@@ -11,6 +11,7 @@ class LimeFrameGUI : JavaPlugin() {
         this.saveDefaultConfig()
         CommandManager(this)
         LimeFrameAPI.init(this)
+        LimeFrameAPI.debugging = true
     }
 
     override fun onDisable() {
