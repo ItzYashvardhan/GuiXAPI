@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory
 
 interface GUIPage {
     val currentPage: Int
-    fun getInventory(): Inventory
+    var inventory: Inventory
 
     fun getItems(): Map<Int, GuiItem>
     fun addItem(item: GuiItem, onClick: ((InventoryClickEvent) -> Unit) = {}): Int

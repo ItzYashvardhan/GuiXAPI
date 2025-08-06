@@ -14,6 +14,7 @@ score = "4.24.3.5"
 sig = "1.5.0"
 bstats = "3.1.0"
 annotaiton = "23.0.0"
+reflection = "2.1.0"
 
 # Implementation
 adventure-platform = "4.4.0"
@@ -22,6 +23,7 @@ adventure-minimessage = "4.21.0"
 [libraries]
 #Core
 kotlin = {module= "org.jetbrains.kotlin:kotlin-stdlib-jdk8"}
+kotlin-reflection = {module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "reflection"}
 spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
 
 #For skull
@@ -33,6 +35,7 @@ papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
 #Mini Message
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+
 
 
 vault = { module = "com.github.milkbowl:VaultAPI", version.ref = "vault" }

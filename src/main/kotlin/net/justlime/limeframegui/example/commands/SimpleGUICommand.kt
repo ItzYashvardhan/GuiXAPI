@@ -168,7 +168,7 @@ class SimpleGUICommand() : CommandHandler {
             loadInventoryContents(inventory)
 
             onClose {
-                val inventory = pages[GLOBAL_PAGE]?.getInventory() ?: return@onClose //Definitely not happening
+                val inventory = pages[GLOBAL_PAGE]?.inventory ?: return@onClose //Definitely not happening
                 config.saveInventory("inventory", inventory, setting.title)
             }
         }.open(player)

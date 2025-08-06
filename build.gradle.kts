@@ -24,6 +24,7 @@ dependencies {
     compileOnly(libs.spigot)
     compileOnly(libs.authlib)
     compileOnly(libs.kotlin)
+    compileOnly(libs.kotlin.reflection)
     compileOnly(libs.annotation)
     compileOnly(libs.adventure.platform)
     compileOnly(libs.adventure.minimessage)

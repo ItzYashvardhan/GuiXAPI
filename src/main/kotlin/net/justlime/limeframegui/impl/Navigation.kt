@@ -20,7 +20,7 @@ class Navigation(private val builder: ChestGuiBuilder, private val handler: GuiH
         val nextOnClick = { event: InventoryClickEvent ->
             val player = event.whoClicked as Player
             val currentPage = handler.getCurrentPage(player)
-            val maxPage = handler.pageInventories.keys.filter { it != ChestGUI.Companion.GLOBAL_PAGE }.maxOrNull() ?: currentPage
+            val maxPage = handler.pageInventories.keys.filter { it != ChestGUI.GLOBAL_PAGE }.maxOrNull() ?: currentPage
 
             if (currentPage < maxPage) {
                 handler.open(player, currentPage + 1)
@@ -32,7 +32,7 @@ class Navigation(private val builder: ChestGuiBuilder, private val handler: GuiH
         val prevOnClick = { event: InventoryClickEvent ->
             val player = event.whoClicked as Player
             val currentPage = handler.getCurrentPage(player)
-            val minPage = handler.pageInventories.keys.filter { it != ChestGUI.Companion.GLOBAL_PAGE }.minOrNull() ?: currentPage
+            val minPage = handler.pageInventories.keys.filter { it != ChestGUI.GLOBAL_PAGE }.minOrNull() ?: currentPage
 
             if (currentPage > minPage) {
                 handler.open(player, currentPage - 1)
@@ -40,19 +40,19 @@ class Navigation(private val builder: ChestGuiBuilder, private val handler: GuiH
                 player.sendMessage("§cYou are on the first page.")
             }
         }
-        val minPageId = builder.pages.keys.filter { it != ChestGUI.Companion.GLOBAL_PAGE }.minOrNull() ?: 0
-        val maxPageId = builder.pages.keys.filter { it != ChestGUI.Companion.GLOBAL_PAGE }.maxOrNull() ?: 0
+        val minPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.minOrNull() ?: 0
+        val maxPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.maxOrNull() ?: 0
 
         builder.pages.forEach { (id, page) ->
 
-            val lastSlot = page.getInventory().size - 1
+            val lastSlot = page.inventory.size - 1
             val lastRowFirstSlot = lastSlot - 8
 
 
-            if (id != ChestGUI.Companion.GLOBAL_PAGE && id != minPageId) if (prevSlot == -1) page.setItem(lastRowFirstSlot + margin, prevItem, prevOnClick)
+            if (id != ChestGUI.GLOBAL_PAGE && id != minPageId) if (prevSlot == -1) page.setItem(lastRowFirstSlot + margin, prevItem, prevOnClick)
             else page.setItem(prevSlot + margin, prevItem, prevOnClick)
 
-            if (id != ChestGUI.Companion.GLOBAL_PAGE && id != maxPageId) if (nextSlot == -1) page.setItem(lastSlot - margin, nextItem, nextOnClick)
+            if (id != ChestGUI.GLOBAL_PAGE && id != maxPageId) if (nextSlot == -1) page.setItem(lastSlot - margin, nextItem, nextOnClick)
             else page.setItem(nextSlot - margin, nextItem, nextOnClick)
 
         }

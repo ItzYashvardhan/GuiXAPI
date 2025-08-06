@@ -8,14 +8,9 @@ import org.bukkit.Bukkit
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
-import org.bukkit.inventory.Inventory
 
 class GuiPageImpl(override val currentPage: Int, private val handler: GuiHandler, setting: GUISetting) : GUIPage {
-    private var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title.replace("{page}", currentPage.toString()))
-
-    override fun getInventory(): Inventory {
-        return inventory
-    }
+    override var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title.replace("{page}", currentPage.toString()))
 
     override fun getItems(): Map<Int, GuiItem> {
         val items = mutableMapOf<Int, GuiItem>()

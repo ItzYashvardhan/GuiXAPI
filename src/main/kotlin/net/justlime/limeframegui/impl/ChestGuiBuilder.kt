@@ -32,7 +32,7 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     init {
         // The global page (ID 0) is created immediately to hold shared items.
         // It uses the GuiImpl as its holder, which is a key part of the design.
-        pages[ChestGUI.Companion.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.Companion.GLOBAL_PAGE, guiHandler, setting)
+        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting)
     }
 
     // --- Global Event Handlers ---
@@ -75,7 +75,7 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
      */
     fun addPage(id: Int, rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
         actions.add(ChestGuiActions.PAGE_MANAGEMENT to {
-            if (id == ChestGUI.Companion.GLOBAL_PAGE) throw IllegalArgumentException("Cannot overwrite the global page (ID 0).")
+            if (id == ChestGUI.GLOBAL_PAGE) throw IllegalArgumentException("Cannot overwrite the global page (ID 0).")
             if (pages.containsKey(id)) throw IllegalArgumentException("A page with ID $id already exists.")
 
             val newPage = createPage(id, GUISetting(rows, title))
@@ -104,14 +104,13 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
         val newPage = GuiPageImpl(pageId, guiHandler, setting)
 
         // Copy items from the global page's inventory to the new page.
-        pages[ChestGUI.Companion.GLOBAL_PAGE]?.getInventory()?.contents?.forEachIndexed { index, itemStack ->
+        pages[ChestGUI.GLOBAL_PAGE]?.inventory?.contents?.forEachIndexed { index, itemStack ->
             if (itemStack != null) newPage.setItem(index, itemStack.toGuiItem())
         }
 
         // Copy item click handlers from the global page to the new page.
-        guiHandler.itemClickHandler[ChestGUI.Companion.GLOBAL_PAGE]?.forEach { (slot, handler) ->
+        guiHandler.itemClickHandler[ChestGUI.GLOBAL_PAGE]?.forEach { (slot, handler) ->
             val pageHandlers = guiHandler.itemClickHandler.computeIfAbsent(pageId) { mutableMapOf() }
-            if (pageHandlers.isNotEmpty()) println("Found handler for slot $slot in page $pageId") else println("No handler found for slot $slot in page $pageId")
             pageHandlers[slot] = handler
         }
 
@@ -123,9 +122,9 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun addItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && item != null) {
-                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
+                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
                 globalPage.addItem(item, onClick).let { addedSlot ->
                     // Add the handler for the slot that was automatically found.
                     clickHandlers[addedSlot] = onClick
@@ -137,9 +136,9 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun addItem(items: List<GuiItem>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (items.isEmpty() || !visibleCondition()) return@to
-            val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
+            val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
             // Get the map for the global page, or create it if it doesn't exist.
-            val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+            val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
             items.forEach { guiItem ->
                 globalPage.addItem(guiItem) { event -> onClick.invoke(guiItem, event) }.let { addedSlot ->
@@ -152,8 +151,8 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun setItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && item != null) {
-                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 if (item.slot != null) {
                     globalPage.setItem(item.slot!!, item, onClick)
@@ -173,8 +172,8 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun setItems(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && item != null) {
-                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 if (item.slot != null) {
                     globalPage.setItem(item.slot!!, item)
@@ -195,9 +194,9 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun setItem(item: GuiItem?, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && slot != null && item != null) {
-                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
+                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
                 globalPage.setItem(slot, item, onClick)
                 // Add the handler for this specific slot.
                 clickHandlers[slot] = onClick
@@ -208,8 +207,8 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     fun setItem(items: GuiItem?, slot: List<Int>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && items != null) {
-                val globalPage = pages[ChestGUI.Companion.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.Companion.GLOBAL_PAGE) { mutableMapOf() }
+                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
+                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 slot.forEach { currentSlot ->
                     globalPage.setItem(currentSlot, items)
@@ -241,7 +240,7 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
         // After all pages are configured, transfer their final inventories to the handler.
         // This is the final step that makes the GUI "live".
         pages.forEach { (id, page) ->
-            guiHandler.pageInventories[id] = page.getInventory()
+            guiHandler.pageInventories[id] = page.inventory
         }
 
         return guiHandler
