@@ -182,19 +182,26 @@ class SimpleGUICommand() : CommandHandler {
             onClick { it.isCancelled = true }
 
             addPage(6, "Page 1") {
-
-                println("Added Page $currentPage")
-
+                addItem(ItemStack(Material.STONE).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
+                    openPage(player, 3)
+                }
                 addPage(3, 5, "Page 11") {
-                    addItem(ItemStack(Material.DIAMOND).toGuiItem().apply { displayName = "Go to Nested Page 1" })
-                    openPage(player,1)
-                    println("Added Page $currentPage")
-                }
+                    addItem(ItemStack(Material.DIAMOND).toGuiItem().apply { displayName = "Go to Nested Page 4" }) {
+                        openPage(player, 4)
+                    }
+                    addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 1" }) {
+                        openPage(player, 1)
+                    }
+                    addPage {
+                        addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
+                            openPage(player, 3)
+                        }
+                        addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 1" }) {
+                            openPage(player, 1)
+                        }
+                    }
 
-                addItem(ItemStack(Material.STONE).toGuiItem().apply { displayName = "Go to Nested Page 2" }) {
-                    openPage(player, 2)
                 }
-
 
             }
         }.open(player)
