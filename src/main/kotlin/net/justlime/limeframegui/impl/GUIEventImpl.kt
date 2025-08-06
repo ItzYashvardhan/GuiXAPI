@@ -1,7 +1,8 @@
 package net.justlime.limeframegui.impl
 
-import net.justlime.limeframegui.handle.GUI
+import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
+import net.justlime.limeframegui.type.ChestGUI
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -18,45 +19,45 @@ import org.bukkit.plugin.java.JavaPlugin
  *
  * @param setting The basic settings for the GUI (title, rows).
  */
-class GuiHandler(private val setting: GUISetting) : GUI {
+class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
     private val hasTriggeredGlobalOpen = mutableSetOf<String>()
 
     // A single, optional handler for global events.
-    var globalOpenHandler: ((InventoryOpenEvent) -> Unit)? = null
-    var globalCloseHandler: ((InventoryCloseEvent) -> Unit)? = null
-    var globalClickHandler: ((InventoryClickEvent) -> Unit)? = null
+    override var globalOpenHandler: ((InventoryOpenEvent) -> Unit)? = null
+    override var globalCloseHandler: ((InventoryCloseEvent) -> Unit)? = null
+    override var globalClickHandler: ((InventoryClickEvent) -> Unit)? = null
 
     // Page-specific handlers, mapping a page ID to a single handler function.
-    val pageOpenHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
-    val pageCloseHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
-    val pageClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
+    override val pageOpenHandlers = mutableMapOf<Int, (InventoryOpenEvent) -> Unit>()
+    override val pageCloseHandlers = mutableMapOf<Int, (InventoryCloseEvent) -> Unit>()
+    override val pageClickHandlers = mutableMapOf<Int, (InventoryClickEvent) -> Unit>()
 
     // A single, unified map for all item-specific click handlers.
     // Structure: Page ID -> (Slot -> Handler)
-    val itemClickHandler = mutableMapOf<Int, MutableMap<Int, (InventoryClickEvent) -> Unit>>()
+    override val itemClickHandler = mutableMapOf<Int, MutableMap<Int, (InventoryClickEvent) -> Unit>>()
 
     // Stores the actual Inventory object for each page. This is populated by the builder.
-    val pageInventories = mutableMapOf<Int, Inventory>()
+    override val pageInventories = mutableMapOf<Int, Inventory>()
 
     // Tracks the current page for each player viewing the GUI.
-    val currentPages = mutableMapOf<String, Int>()
+    override val currentPages = mutableMapOf<String, Int>()
 
     /**
      * Opens a specific page of the GUI for a player.
      *
      * @param player The player to open the GUI for.
-     * @param pageId The ID of the page to open. Defaults to 0.
+     * @param page The ID of the page to open. Defaults to 0.
      */
-    override fun open(player: Player, pageId: Int) {
+    override fun open(player: Player, page: Int) {
 
-        val inventoryToOpen = pageInventories[pageId]
+        val inventoryToOpen = pageInventories[page]
         if (inventoryToOpen == null) {
             // Optionally send an error message to the player or log it.
-            player.sendMessage("§cError: GUI page $pageId not found.")
+            player.sendMessage("§cError: GUI page $page not found.")
             return
         }
 
-        setCurrentPage(player, pageId)
+        setCurrentPage(player, page)
 
         // Open the inventory for the player.
         player.openInventory(inventoryToOpen)
@@ -66,21 +67,36 @@ class GuiHandler(private val setting: GUISetting) : GUI {
 
     override fun getInventory(): Inventory {
         // Return the global page (0) inventory by default, or an empty one if it doesn't exist.
-        return pageInventories[0] ?: Bukkit.createInventory(this, setting.rows * 9, setting.title)
+        return pageInventories[ChestGUI.GLOBAL_PAGE] ?: Bukkit.createInventory(this, setting.rows * 9, setting.title)
     }
 
     /**
      * Sets the current page for a player. This is typically called by the builder or the open function.
      */
-    fun setCurrentPage(player: Player, pageId: Int) {
-        currentPages[player.name] = pageId
+    override fun setCurrentPage(player: Player, page: Int) {
+        currentPages[player.name] = page
     }
 
     /**
      * Gets the current page a player is viewing. Defaults to 0.
      */
-    fun getCurrentPage(player: Player): Int {
+    override fun getCurrentPage(player: Player): Int {
         return currentPages[player.name] ?: 0
+    }
+
+    /**
+     * Handles inventory open events.
+     */
+    override fun onEvent(event: InventoryOpenEvent) {
+        val player = event.player as? Player ?: return
+        val pageId = getCurrentPage(player)
+
+        pageOpenHandlers[pageId]?.invoke(event)
+
+        if (!hasTriggeredGlobalOpen.contains(player.name)) {
+            globalOpenHandler?.invoke(event)
+            hasTriggeredGlobalOpen.add(player.name)
+        }
     }
 
     /**
@@ -99,21 +115,6 @@ class GuiHandler(private val setting: GUISetting) : GUI {
 
         // Priority 4: Global click handler.
         globalClickHandler?.invoke(event)
-    }
-
-    /**
-     * Handles inventory open events.
-     */
-    override fun onEvent(event: InventoryOpenEvent) {
-        val player = event.player as? Player ?: return
-        val pageId = getCurrentPage(player)
-
-        pageOpenHandlers[pageId]?.invoke(event)
-
-        if (!hasTriggeredGlobalOpen.contains(player.name)) {
-            globalOpenHandler?.invoke(event)
-            hasTriggeredGlobalOpen.add(player.name)
-        }
     }
 
     /**

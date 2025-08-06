@@ -1,7 +1,8 @@
 package net.justlime.limeframegui.type
 
-import net.justlime.limeframegui.impl.ChestGuiBuilder
-import net.justlime.limeframegui.impl.GuiHandler
+import net.justlime.limeframegui.handle.GUIEventHandler
+import net.justlime.limeframegui.impl.ChestGUIBuilder
+import net.justlime.limeframegui.impl.GUIEventImpl
 import net.kyori.adventure.title.Title.title
 import org.bukkit.entity.Player
 
@@ -13,11 +14,11 @@ import org.bukkit.entity.Player
  * @param block A lambda with `ChestGuiBuilder` as its receiver, allowing for
  *              a configuration of the GUI.
  */
-class ChestGUI( rows: Int = 6,title: String = "Inventory", block: ChestGuiBuilder.() -> Unit = {}) {
-    private val guiHandler: GuiHandler
+class ChestGUI( rows: Int = 6,title: String = "Inventory", block: ChestGUIBuilder.() -> Unit = {}) {
+    private val guiHandler: GUIEventHandler
 
     init {
-        val builder = ChestGuiBuilder( rows,title)
+        val builder = ChestGUIBuilder( rows,title)
         builder.apply(block)
         this.guiHandler = builder.build()
     }

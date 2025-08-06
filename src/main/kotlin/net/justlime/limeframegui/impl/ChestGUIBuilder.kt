@@ -16,7 +16,7 @@ import org.bukkit.inventory.Inventory
  * Its job is to exist before any player interacts with the GUI.
  * Use it to define the layout, the pages, and the rules. It's like an architect's blueprint for a house.
  */
-class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
+class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
 
     val setting = GUISetting(rows, title)
 
@@ -24,7 +24,7 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     val pages = mutableMapOf<Int, GUIPage>()
 
     //Main Handler for Registering Events
-    private val guiHandler = GuiHandler(setting)
+    private val guiHandler = GUIEventImpl(setting)
 
     // All configuration steps are queued as prioritized actions to be executed in order during build().
     private val actions = mutableListOf<Pair<ChestGuiActions, () -> Unit>>()
@@ -233,7 +233,7 @@ class ChestGuiBuilder(rows: Int = 6, title: String = "Inventory") {
     /**
      * Executes all queued actions in their prioritized order and returns the fully configured GuiImpl handler.
      */
-    fun build(): GuiHandler {
+    fun build(): GUIEventImpl {
         // Run all the queued configuration actions, sorted by priority.
         actions.sortedBy { it.first.priority }.forEach { it.second.invoke() }
 

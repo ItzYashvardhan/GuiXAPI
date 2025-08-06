@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.handle.GUIPage
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
@@ -9,7 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 
-class GuiPageImpl(override val currentPage: Int, private val handler: GuiHandler, setting: GUISetting) : GUIPage {
+class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting) : GUIPage {
     override var inventory = Bukkit.createInventory(handler.inventory.holder, setting.rows * 9, setting.title.replace("{page}", currentPage.toString()))
 
     override fun getItems(): Map<Int, GuiItem> {

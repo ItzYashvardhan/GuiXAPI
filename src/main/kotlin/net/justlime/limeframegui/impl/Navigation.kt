@@ -1,12 +1,13 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 
-class Navigation(private val builder: ChestGuiBuilder, private val handler: GuiHandler) {
+class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIEventHandler) {
 
     // --- User-Overridable Settings ---
     var nextItem: GuiItem = GuiItem(Material.ARROW, "§aNext Page")
@@ -47,7 +48,6 @@ class Navigation(private val builder: ChestGuiBuilder, private val handler: GuiH
 
             val lastSlot = page.inventory.size - 1
             val lastRowFirstSlot = lastSlot - 8
-
 
             if (id != ChestGUI.GLOBAL_PAGE && id != minPageId) if (prevSlot == -1) page.setItem(lastRowFirstSlot + margin, prevItem, prevOnClick)
             else page.setItem(prevSlot + margin, prevItem, prevOnClick)

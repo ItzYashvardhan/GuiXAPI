@@ -1,6 +1,6 @@
 package net.justlime.limeframegui.listener
 
-import net.justlime.limeframegui.handle.GUI
+import net.justlime.limeframegui.handle.GUIEventHandler
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginDisableEvent
@@ -12,7 +12,7 @@ class PluginListener: Listener {
         val onlinePlayers = event.plugin.server.onlinePlayers
         for (player in onlinePlayers) {
             val openInventory = player.openInventory.topInventory
-            if (openInventory.holder is GUI) {
+            if (openInventory.holder is GUIEventHandler) {
                 player.closeInventory()
             }
         }
