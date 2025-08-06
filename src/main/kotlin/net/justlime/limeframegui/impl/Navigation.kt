@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
@@ -18,6 +19,7 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
     var prevSlot: Int = -1
 
     fun build() {
+        if (LimeFrameAPI.debugging) println("Building Navigation")
         val nextOnClick = nextOnClick@{ event: InventoryClickEvent ->
             val player = event.whoClicked as Player
             val currentPage = handler.getCurrentPage(player) ?: return@nextOnClick
@@ -41,8 +43,8 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
                 player.sendMessage("§cYou are on the first page.")
             }
         }
-        val minPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.minOrNull() ?: 0
-        val maxPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.maxOrNull() ?: 0
+        val minPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.minOrNull() ?: return
+        val maxPageId = builder.pages.keys.filter { it != ChestGUI.GLOBAL_PAGE }.maxOrNull() ?: return
 
         builder.pages.forEach { (id, page) ->
 
@@ -56,5 +58,6 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
             else page.setItem(nextSlot - margin, nextItem, nextOnClick)
 
         }
+        if (LimeFrameAPI.debugging)println("Finished Building Navigation")
     }
 }

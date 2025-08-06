@@ -72,7 +72,7 @@ class SimpleGUICommand() : CommandHandler {
 
         ChestGUI(6, "Pager GUI") {
 
-            nav {
+            this.nav {
                 this.nextItem = nextItem
                 this.prevItem = prevItem
                 this.margin = 3
@@ -181,11 +181,13 @@ class SimpleGUICommand() : CommandHandler {
         ChestGUI(6, "Nested GUI") {
             onClick { it.isCancelled = true }
 
+            nav {}
+
             addPage(6, "Page 1") {
                 addItem(ItemStack(Material.STONE).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
-                    openPage(player, 3)
+                    openPage(player, 2)
                 }
-                addPage(3, 5, "Page 11") {
+                addPage( 5, "Page 11") {
                     addItem(ItemStack(Material.DIAMOND).toGuiItem().apply { displayName = "Go to Nested Page 4" }) {
                         openPage(player, 4)
                     }
@@ -194,7 +196,7 @@ class SimpleGUICommand() : CommandHandler {
                     }
                     addPage {
                         addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
-                            openPage(player, 3)
+                            openPage(player, 2)
                         }
                         addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 1" }) {
                             openPage(player, 1)
@@ -203,6 +205,12 @@ class SimpleGUICommand() : CommandHandler {
 
                 }
 
+            }
+
+            addPage {
+                addItem(ItemStack(Material.ENDER_PEARL).toGuiItem().apply { displayName = "Go to Nested Page 1"}){
+                    openPage(player, 1)
+                }
             }
         }.open(player)
 

@@ -93,7 +93,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
 
 
     override fun nav(block: Navigation.() -> Unit) {
-        builder.nav(block)
+//        builder.nav(block)
     }
 
     override fun openPage(player: Player, id: Int) {

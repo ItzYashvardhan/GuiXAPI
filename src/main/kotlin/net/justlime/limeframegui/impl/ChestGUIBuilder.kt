@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
+import kotlin.to
 
 /**
  * The Builder is a Blueprint: ChestGuiBuilder is a configuration object.
@@ -31,11 +32,10 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
     private val actions = mutableListOf<Pair<ChestGuiActions, () -> Unit>>()
     private var currentExecutingAction: ChestGuiActions? = null
 
-
     init {
         // The global page (ID 0) is created immediately to hold shared items.
         // It uses the GuiImpl as its holder, which is a key part of the design.
-        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting,this)
+        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting, this)
     }
 
     // --- Global Event Handlers ---
@@ -95,14 +95,13 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
         }
     }
 
-
     /**
      * Adds a page with an automatically assigned, incremental ID. This is the recommended approach.
      */
     fun addPage(rows: Int = this.setting.rows, title: String = this.setting.title, block: GUIPage.() -> Unit) {
-        val newId = (pages.keys.maxOrNull() ?: ChestGUI.GLOBAL_PAGE) + 1
 
         val runBlock = {
+            val newId = (pages.keys.maxOrNull() ?: ChestGUI.GLOBAL_PAGE) + 1
             if (LimeFrameAPI.debugging) println("Starting Execution of Page $newId")
             val newPage = createPage(newId, GUISetting(rows, title))
             pages[newId] = newPage
@@ -114,16 +113,15 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
             runBlock()
         } else {
             actions += ChestGuiActions.PAGE_ITEMS to runBlock
-            if (LimeFrameAPI.debugging) println("Queued Page $newId")
+            if (LimeFrameAPI.debugging) println("Queued Page ${(pages.keys.maxOrNull() ?: ChestGUI.GLOBAL_PAGE) + 1}")
         }
     }
-
 
     /**
      * Creates a new page, correctly copying all items and handlers from the global page.
      */
     private fun createPage(pageId: Int, setting: GUISetting): GUIPage {
-        val newPage = GuiPageImpl(pageId, guiHandler, setting,this)
+        val newPage = GuiPageImpl(pageId, guiHandler, setting, this)
 
         // Copy items from the global page's inventory to the new page.
         pages[ChestGUI.GLOBAL_PAGE]?.inventory?.contents?.forEachIndexed { index, itemStack ->
@@ -142,7 +140,7 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
     // --- Item Management ---
 
     fun addItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
-        actions += ChestGuiActions.GLOBAL_ITEMS to {
+        val runBlock = to@{
             if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
                 // Get the map for the global page, or create it if it doesn't exist.
@@ -153,10 +151,12 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
                 }
             }
         }
+        if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock()
+        else actions += ChestGuiActions.GLOBAL_ITEMS to runBlock
     }
 
     fun addItem(items: List<GuiItem>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
-        actions += ChestGuiActions.GLOBAL_ITEMS to {
+        val runBlock = to@{
             if (items.isEmpty() || !visibleCondition()) return@to
             val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
             // Get the map for the global page, or create it if it doesn't exist.
@@ -168,6 +168,8 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
                 }
             }
         }
+        if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock
+        else actions += ChestGuiActions.GLOBAL_ITEMS to runBlock
     }
 
     fun setItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
@@ -241,7 +243,10 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
     }
 
     fun nav(block: Navigation.() -> Unit) {
-        actions += ChestGuiActions.NAVIGATION to { Navigation(this, guiHandler).apply(block).build() }
+        if (LimeFrameAPI.debugging) println("Queued Navigation")
+        val runBlock = { Navigation(this, guiHandler).apply(block).build() }
+        if (currentExecutingAction == ChestGuiActions.NAVIGATION) runBlock()
+        else actions += ChestGuiActions.NAVIGATION to runBlock
     }
 
     fun loadInventoryContents(inventory: Inventory) {
@@ -256,9 +261,7 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
      * Executes all queued actions in their prioritized order and returns the fully configured GuiImpl handler.
      */
     fun build(): GUIEventImpl {
-        actions
-            .sortedBy { it.first.priority }
-            .forEach { (action, block) ->
+        actions.sortedBy { it.first.priority }.forEach { (action, block) ->
                 currentExecutingAction = action
                 block()
                 currentExecutingAction = null
@@ -270,6 +273,5 @@ class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
 
         return guiHandler
     }
-
 
 }
