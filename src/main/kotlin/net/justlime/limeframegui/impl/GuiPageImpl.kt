@@ -10,7 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 
-class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
+class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler,val setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
     override var inventory = handler.createPageInventory(currentPage, setting)
 
     override fun getItems(): Map<Int, GuiItem> {
@@ -25,6 +25,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
     override fun addItem(item: GuiItem, onClick: (InventoryClickEvent) -> Unit): Int {
         val slot = inventory.firstEmpty()
         if (slot != -1) {
+            if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
             inventory.setItem(slot, item.toItemStack())
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = onClick
 
@@ -33,17 +34,19 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
     }
 
     override fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)) {
-        items.forEach { guiItem ->
+        items.forEach { item ->
             val slot = inventory.firstEmpty()
             if (slot != -1) {
-                inventory.setItem(slot, guiItem.toItemStack())
-                handler.itemClickHandler[currentPage] = mutableMapOf(slot to { event -> onClick.invoke(guiItem, event) })
+                if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
+                inventory.setItem(slot, item.toItemStack())
+                handler.itemClickHandler[currentPage] = mutableMapOf(slot to { event -> onClick.invoke(item, event) })
             }
         }
     }
 
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)): Int {
         if (index < inventory.size) {
+            if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
             inventory.setItem(index, item.toItemStack())
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = onClick
 
