@@ -41,8 +41,8 @@ object FrameColor {
             .replace("§m", "<strikethrough>").replace("§n", "<underlined>").replace("§o", "<italic>").replace("§r", "<reset>")
     }
 
-    fun applyColor(text: List<String>): List<String> {
-        return text.map { applyColor(it) }
+    fun applyColor(text: List<String>, player: Player? = null): List<String> {
+        return text.map { applyColor(it, player) }
     }
 
     /**

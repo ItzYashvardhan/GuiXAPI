@@ -73,7 +73,7 @@ data class GuiItem(
         // Lore
         if (lore.isNotEmpty()) {
             try {
-                meta.lore = FrameColor.applyColor(lore)
+                meta.lore = FrameColor.applyColor(lore,placeholderPlayer)
             } catch (_: Throwable) {
                 meta.lore = lore
             }

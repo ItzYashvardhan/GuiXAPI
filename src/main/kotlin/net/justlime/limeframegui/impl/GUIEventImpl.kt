@@ -75,7 +75,7 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         val size = setting.rows * 9
         val title = setting.title.replace("{page}", id.toString())
-        val coloredTitle = FrameColor.applyColor(title)
+        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer)
 
         val inv = Bukkit.createInventory(this, size, coloredTitle)
         pageInventories[id] = inv
