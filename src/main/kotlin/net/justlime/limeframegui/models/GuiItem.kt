@@ -68,6 +68,11 @@ data class GuiItem(
         }
 
         // Display name
+        if (displayName?.isEmpty() == true){
+            try {
+                meta.isHideTooltip = true
+            }catch (_: Exception){ }
+        }
         meta.setDisplayName(displayName?.let { FrameColor.applyColor(it,placeholderPlayer) })
 
         // Lore
