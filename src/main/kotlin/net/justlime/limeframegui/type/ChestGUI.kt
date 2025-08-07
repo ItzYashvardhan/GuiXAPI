@@ -14,8 +14,8 @@ import org.bukkit.entity.Player
  * @param block A lambda with `ChestGuiBuilder` as its receiver, allowing for
  *              a configuration of the GUI.
  */
-class ChestGUI( setting: GUISetting, private val block: ChestGUIBuilder.() -> Unit = {}) {
-    constructor(row: Int,title: String) : this(GUISetting(row, title), block = {})
+class ChestGUI( setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) {
+    constructor(row: Int,title: String, block: ChestGUIBuilder.() -> Unit) : this(GUISetting(row, title), block = {})
 
     private val guiHandler: GUIEventHandler
 

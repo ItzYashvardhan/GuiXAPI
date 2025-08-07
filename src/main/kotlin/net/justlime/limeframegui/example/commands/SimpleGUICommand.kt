@@ -69,7 +69,6 @@ class SimpleGUICommand() : CommandHandler {
         val item3 = ItemStack(Material.STONE).toGuiItem()
         val item4 = ItemStack(Material.IRON_SWORD).toGuiItem()
 
-
         ChestGUI(6, "Pager GUI") {
 
             this.nav {
