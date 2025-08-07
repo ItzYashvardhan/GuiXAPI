@@ -6,6 +6,9 @@ load: STARTUP
 authors: [ItzJustLime]
 description: Easy  Manager API for GUI
 website: https://discord.gg/rVsUJ4keZN
+softdepend:
+  - PlaceholderAPI
+
 
 commands:
   simplegui:

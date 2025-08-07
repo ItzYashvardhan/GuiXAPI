@@ -1,10 +1,13 @@
 package net.justlime.limeframegui.utilities
 
+import me.clip.placeholderapi.PlaceholderAPI
 import net.justlime.limeframegui.enums.ColorType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.entity.Player
 import java.util.regex.Pattern
 
 object FrameColor {
@@ -13,17 +16,19 @@ object FrameColor {
     private val legacy = LegacyComponentSerializer.legacySection()
     private val hexPattern = Pattern.compile("(?i)&#([A-Fa-f0-9]{6})")
     private val mini by lazy { MiniMessage.miniMessage() }
+    private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
 
     /**
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String): String {
+    fun applyColor(text: String, player: Player? = null): String {
+        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text) else return text
         return when (colorType) {
-            ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', text)
-            ColorType.HEX -> translateHexToLegacy(text)
+            ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
+            ColorType.HEX -> translateHexToLegacy(newText)
             ColorType.MINI_MESSAGE -> {
-                val legacyText = ChatColor.translateAlternateColorCodes('&', text)
+                val legacyText = ChatColor.translateAlternateColorCodes('&', newText)
                 val miniText = legacyText.replaceLegacyToMini()
                 toLegacyMini(miniText)
             }

@@ -4,11 +4,20 @@ import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 
+/**
+ * @param flags Used this field add custom flags
+ * @param skullTexture Supported base64 url for skull texture
+ * @param slot Pass a single slot id
+ * @param slotList Pass a list of slot id
+ * @param glow This field is responsible to toggle glow able items
+ * @param placeholderPlayer This fields is used to apply placeholder to item name and lore for given player
+ */
 data class GuiItem(
     var material: Material,
     var displayName: String? = "",
@@ -18,10 +27,11 @@ data class GuiItem(
     var flags: Collection<ItemFlag?> = emptyList(),
     var customModelData: Int? = null,
     var skullTexture: String? = null,
-    var slot: Int? = null, //Store object slot
+    var slot: Int? = null,
     var slotList: MutableList<Int> = mutableListOf(), //to store single item in many slots
-    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data can be used later like template"
-    var key: String? = null
+    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data"
+    var placeholderPlayer: Player? = null
+
 ) {
 
     companion object {
@@ -58,7 +68,7 @@ data class GuiItem(
         }
 
         // Display name
-        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it) })
+        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it,placeholderPlayer) })
 
         // Lore
         if (lore.isNotEmpty()) {

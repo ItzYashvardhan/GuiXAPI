@@ -9,7 +9,7 @@ nexo = "1.1.0"
 oraxen = "1.190.0"
 mythiclib = "1.7.1-SNAPSHOT"
 mmoitems = "6.10-SNAPSHOT"
-papi = "2.11.6"
+papi_version = "2.11.6"
 score = "4.24.3.5"
 sig = "1.5.0"
 bstats = "3.1.0"
@@ -30,7 +30,7 @@ spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
 authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
 
 #PlaceHolderAPI Support
-papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
+papi = { module = "me.clip:placeholderapi", version.ref = "papi_version" }
 
 #Mini Message
 adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }

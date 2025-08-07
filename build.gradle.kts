@@ -18,6 +18,7 @@ repositories {
     maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://jitpack.io")
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
 dependencies {
@@ -28,6 +29,7 @@ dependencies {
     compileOnly(libs.annotation)
     compileOnly(libs.adventure.platform)
     compileOnly(libs.adventure.minimessage)
+    compileOnly(libs.papi)
 
 }
 
