@@ -1,6 +1,7 @@
 package net.justlime.limeframegui.utilities
 
 import me.clip.placeholderapi.PlaceholderAPI
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ColorType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -23,8 +24,8 @@ object FrameColor {
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
     fun applyColor(text: String, player: Player? = null): String {
-        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name))
-        else text.customPlaceholder(player?.name)
+        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps()
+        else text.customPlaceholder(player?.name).toSmallCaps()
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
             ColorType.HEX -> translateHexToLegacy(newText)
@@ -46,6 +47,48 @@ object FrameColor {
         if (name == null) return this
         return this.replace("{player}", name)
     }
+
+    private fun String.toSmallCaps(): String {
+        if (!LimeFrameAPI.keys.smallCaps) return this
+
+        val result = StringBuilder()
+        var inMiniTag = false
+        var skipNext = false
+
+        for (i in this.indices) {
+            val c = this[i].toString()
+
+            // Handle MiniMessage tags: <...>
+            if (c == "<") {
+                inMiniTag = true
+            }
+
+            if (inMiniTag) {
+                result.append(c)
+                if (c == ">") inMiniTag = false
+                continue
+            }
+
+            // Handle legacy color codes: &a or §a
+            if (skipNext) {
+                result.append(c)
+                skipNext = false
+                continue
+            }
+            if (c == "&" || c == "§") {
+                result.append(c)
+                skipNext = true
+                continue
+            }
+
+            // Apply small caps
+            val mapped = LimeFrameAPI.keys.smallCapsFont[c.lowercase()] ?: c
+            result.append(mapped)
+        }
+
+        return result.toString()
+    }
+
 
     fun applyColor(text: List<String>, player: Player? = null): List<String> {
         return text.map { applyColor(it, player) }

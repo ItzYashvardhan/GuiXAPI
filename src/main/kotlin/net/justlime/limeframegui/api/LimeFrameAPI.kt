@@ -11,6 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin
  * */
 object LimeFrameAPI {
     private lateinit var plugin: JavaPlugin
+
     var debugging: Boolean = false
     var keys: ConfigKeys = ConfigKeys()
 
@@ -29,4 +30,6 @@ object LimeFrameAPI {
     fun getPlugin(): JavaPlugin {
         return plugin
     }
+
+
 }
