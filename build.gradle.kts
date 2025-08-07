@@ -20,6 +20,11 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
+val targetJavaVersion = 8
+
+kotlin {
+    jvmToolchain(targetJavaVersion)
+}
 
 dependencies {
     compileOnly(libs.spigot)
@@ -30,14 +35,8 @@ dependencies {
     compileOnly(libs.adventure.platform)
     compileOnly(libs.adventure.minimessage)
     compileOnly(libs.papi)
-
 }
 
-
-val targetJavaVersion = 8
-kotlin {
-    jvmToolchain(targetJavaVersion)
-}
 
 tasks.shadowJar{
     minimize()
