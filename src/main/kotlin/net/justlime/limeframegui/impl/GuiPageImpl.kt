@@ -10,7 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 
-class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting,private val builder: ChestGUIBuilder) : GUIPage {
+class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
     override var inventory = handler.createPageInventory(currentPage, setting)
 
     override fun getItems(): Map<Int, GuiItem> {
@@ -91,13 +91,12 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
         builder.addPage(rows, title, block)
     }
 
-
     override fun nav(block: Navigation.() -> Unit) {
-//        builder.nav(block)
+        throw IllegalStateException("Navigation can only be configured at the top-level GUI builder. Its not ideal to be used in nested pages")
     }
 
     override fun openPage(player: Player, id: Int) {
-       handler.open(player,id)
+        handler.open(player, id)
     }
 
 }
