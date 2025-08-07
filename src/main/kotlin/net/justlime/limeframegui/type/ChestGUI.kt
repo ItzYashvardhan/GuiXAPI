@@ -3,27 +3,32 @@ package net.justlime.limeframegui.type
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.impl.ChestGUIBuilder
 import net.justlime.limeframegui.models.GUISetting
-import net.kyori.adventure.title.Title.title
 import org.bukkit.entity.Player
 
 /**
  * Initializes a new ChestGUI instance using a builder pattern.
  *
- * @param title The title of the inventory.
- * @param rows The number of rows in the inventory (1-6).
- * @param block A lambda with `ChestGuiBuilder` as its receiver, allowing for
- *              a configuration of the GUI.
+ * @param setting The settings for the GUI, including rows, title, and optional player for placeholders.
  */
-class ChestGUI( setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) {
-    constructor(row: Int,title: String, block: ChestGUIBuilder.() -> Unit) : this(GUISetting(row, title), block = {})
+class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) {
+    constructor(row: Int, title: String, player: Player? = null, block: ChestGUIBuilder.() -> Unit) : this(GUISetting(row, title, player), block)
 
     private val guiHandler: GUIEventHandler
-
 
     init {
         val builder = ChestGUIBuilder(setting)
         builder.apply(block)
         this.guiHandler = builder.build()
+    }
+
+    /**
+     * Opens the GUI for a given placeholder player.
+     * @param page The page number to open to.
+     */
+    fun open(page: Int = if (guiHandler.pageInventories[1] != null) 1 else 0) {
+        setting.placeholderPlayer?.let {
+            guiHandler.open(it, page)
+        }
     }
 
     /**
