@@ -18,9 +18,8 @@ import kotlin.to
  * Its job is to exist before any player interacts with the GUI.
  * Use it to define the layout, the pages, and the rules. It's like an architect's blueprint for a house.
  */
-class ChestGUIBuilder(rows: Int = 6, title: String = "Inventory") {
+class ChestGUIBuilder(val setting: GUISetting) {
 
-    val setting = GUISetting(rows, title)
 
     // Pages are temporarily stored here before being moved to the handler.
     val pages = mutableMapOf<Int, GUIPage>()
