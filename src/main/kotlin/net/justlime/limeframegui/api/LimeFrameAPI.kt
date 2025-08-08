@@ -2,7 +2,7 @@ package net.justlime.limeframegui.api
 
 import net.justlime.limeframegui.listener.InventoryListener
 import net.justlime.limeframegui.listener.PluginListener
-import net.justlime.limeframegui.models.ConfigKeys
+import net.justlime.limeframegui.models.FrameConfigKeys
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -13,7 +13,7 @@ object LimeFrameAPI {
     private lateinit var plugin: JavaPlugin
 
     var debugging: Boolean = false
-    var keys: ConfigKeys = ConfigKeys()
+    var keys: FrameConfigKeys = FrameConfigKeys()
 
     fun init(plugin: JavaPlugin) {
         this.plugin = plugin
@@ -23,7 +23,7 @@ object LimeFrameAPI {
         Bukkit.getPluginManager().registerEvents(PluginListener(), plugin)
     }
 
-    fun setKeys(customizer: ConfigKeys.() -> Unit) {
+    fun setKeys(customizer: FrameConfigKeys.() -> Unit) {
         keys.customizer()
     }
 

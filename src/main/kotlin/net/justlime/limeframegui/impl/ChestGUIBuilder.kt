@@ -3,6 +3,7 @@ package net.justlime.limeframegui.impl
 import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ChestGuiActions
 import net.justlime.limeframegui.handle.GUIPage
+import net.justlime.limeframegui.models.FrameReservedSlotPage
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
@@ -30,6 +31,8 @@ class ChestGUIBuilder(val setting: GUISetting) {
     // All configuration steps are queued as prioritized actions to be executed in order during build().
     private val actions = mutableListOf<Pair<ChestGuiActions, () -> Unit>>()
     private var currentExecutingAction: ChestGuiActions? = null
+
+    val reservedSlot = FrameReservedSlotPage()
 
     init {
         // The global page (ID 0) is created immediately to hold shared items.
@@ -242,8 +245,20 @@ class ChestGUIBuilder(val setting: GUISetting) {
     }
 
     fun nav(block: Navigation.() -> Unit) {
+
+        val navigation = Navigation(this, guiHandler).apply(block)
+
+
+        reservedSlot.enableNavSlotReservation = true
+        reservedSlot.nextPageSlot = navigation.nextSlot
+        reservedSlot.prevPageSlot = navigation.prevSlot
+        reservedSlot.navMargin = navigation.margin
+
+
+
         if (LimeFrameAPI.debugging) println("Queued Navigation")
-        val runBlock = { Navigation(this, guiHandler).apply(block).build() }
+        val runBlock = { navigation.build() }
+
         if (currentExecutingAction == ChestGuiActions.NAVIGATION) runBlock()
         else actions += ChestGuiActions.NAVIGATION to runBlock
     }

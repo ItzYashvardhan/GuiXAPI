@@ -7,5 +7,6 @@ data class GUISetting(
     var rows: Int,
     var title: String,
     var placeholderPlayer: Player? = null,
+    var placeholderOfflinePlayer: Player? = null,
     var type: InventoryType = InventoryType.CHEST,
 )

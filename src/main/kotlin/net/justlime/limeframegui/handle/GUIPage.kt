@@ -18,6 +18,7 @@ interface GUIPage {
     fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit) = {}): Int
     fun removeItem(item: GuiItem): GUIPage
     fun removeItem(slot: Int): GUIPage
+    fun removeItem(slotList: List<Int>): GUIPage
     fun onOpen(handler: (InventoryOpenEvent) -> Unit)
     fun onClose(handler: (InventoryCloseEvent) -> Unit)
     fun onClick(handler: (InventoryClickEvent) -> Unit)

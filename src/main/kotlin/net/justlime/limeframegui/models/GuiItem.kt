@@ -1,119 +1,160 @@
 package net.justlime.limeframegui.models
 
+import com.google.common.collect.Multimap
 import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
+import org.bukkit.OfflinePlayer
+import org.bukkit.attribute.Attribute
+import org.bukkit.attribute.AttributeModifier
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
 
 /**
- * @param flags Used this field add custom flags
- * @param skullTexture Supported base64 url for skull texture
- * @param slot Pass a single slot id
- * @param slotList Pass a list of slot id
- * @param glow This field is responsible to toggle glow able items
- * @param placeholderPlayer This fields is used to apply placeholder to item name and lore for given player
+ * Represents an item in a LimeFrame GUI.
+ *
+ * @param material The Bukkit material type of the item.
+ * @param displayName The display name of the item.
+ * @param amount The number of items in the stack (default: 1).
+ * @param lore A list of lore lines displayed under the item name.
+ * @param glow Whether the item should visually glow.
+ * @param flags Item flags to hide or show specific properties in tooltips.
+ * @param customModelData Custom model data ID for resource pack integration.
+ * @param skullTexture Base64-encoded texture string for custom player heads (only works with PLAYER_HEAD).
+ * @param enchantments Map of enchantments and their levels for this item.
+ * @param unbreakable Whether the item is unbreakable (no durability loss).
+ * @param damage The current damage/durability value of the item (0 = new).
+ * @param hideToolTip Used this to completely hide details of item on hover.
+ * @param attributeModifiers Attribute modifiers applied to the item (e.g., extra damage, speed boost).
+ * @param slot Single slot index to place this item into.
+ * @param slotList Multiple slot indices to place the same item in several slots.
+ * @param placeholderPlayer Player object used for applying placeholders in displayName and lore.
+ * @param placeholderOfflinePlayer OfflinePlayer object used for applying placeholders in displayName and lore.
+ * @param onClickBlock Event callback invoked when this item is clicked in the GUI (TODO).
  */
 data class GuiItem(
+    // Appearance
     var material: Material,
     var displayName: String? = "",
     var amount: Int = 1,
-    var lore: MutableList<String> = mutableListOf(),
+    var lore: List<String> = mutableListOf(),
     var glow: Boolean = false,
     var flags: Collection<ItemFlag?> = emptyList(),
     var customModelData: Int? = null,
     var skullTexture: String? = null,
-    var slot: Int? = null,
-    var slotList: MutableList<Int> = mutableListOf(), //to store single item in many slots
-    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO "To Store Click data"
-    var placeholderPlayer: Player? = null
 
+    // Functional Meta
+    var enchantments: Map<Enchantment, Int> = emptyMap(),
+    var unbreakable: Boolean = false,
+    var damage: Int? = null, // Durability value
+    var hideToolTip: Boolean = false,
+    var attributeModifiers: Multimap<Attribute, AttributeModifier>? = null,
+
+    // Placement
+    var slot: Int? = null,
+    var slotList: List<Int> = mutableListOf(),
+
+    // Placeholder & Dynamic Content
+    var placeholderPlayer: Player? = null,
+    var placeholderOfflinePlayer: OfflinePlayer? = null,
+
+    // Click Handling
+    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO
 ) {
 
     companion object {
-        //LET AN INVISIBLE ITEM BE CREATED AND ASK YOUR FRIEND TO FIND ALSO ADD 100 PAGE IF THEY FOUND AND CLICK ON IT LET IT SAY UHH THANK YOU SO MUCH NOW FIND ME AGAIN xd
         fun air(): GuiItem {
             return GuiItem(displayName = "", material = Material.AIR)
         }
     }
 
-    //THIS THING RIGHT THERE IS RESPONSIBLE FOR YOUR PRECIOUS ITEM FOUND IN BLOCKY CHEST
     fun toItemStack(): ItemStack {
         val item = if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !skullTexture.isNullOrEmpty()) {
-            ItemStack(Material.matchMaterial("PLAYER_HEAD") ?: Material.matchMaterial("SKULL_ITEM")!!, amount)
+            ItemStack(Material.PLAYER_HEAD, amount)
         } else {
             ItemStack(material, amount)
         }
 
         val meta = item.itemMeta ?: return item
 
-        // If it's a head, apply profile from cache (safe)
+        // Apply skull texture
         if (meta is SkullMeta && !skullTexture.isNullOrEmpty()) {
             try {
-                // Paper API 1.18+
                 meta.ownerProfile = SkullProfileCache.getProfile(skullTexture!!)
             } catch (_: Throwable) {
-                // Fallback for 1.8.8 or unsupported versions
                 try {
-                    val skullMetaClass = meta.javaClass
-                    val profileField = skullMetaClass.getDeclaredField("profile")
+                    val profileField = meta.javaClass.getDeclaredField("profile")
                     profileField.isAccessible = true
                     profileField.set(meta, SkullProfileCache.getProfile(skullTexture!!))
-                } catch (_: Throwable) {  }
-            }
-        }
-
-        // Display name
-        if (displayName?.isEmpty() == true){
-            try {
-                meta.isHideTooltip = true
-            }catch (_: Exception){ }
-        }
-        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it,placeholderPlayer) })
-
-        // Lore
-        if (lore.isNotEmpty()) {
-            try {
-                meta.lore = FrameColor.applyColor(lore,placeholderPlayer)
-            } catch (_: Throwable) {
-                meta.lore = lore
-            }
-        }
-
-        // Enchantment glint override (1.20+)
-        try {
-            meta.setEnchantmentGlintOverride(glow)
-        } catch (_: Throwable) {
-            if (glow) {
-                try {
-                    meta.addEnchant(Enchantment.UNBREAKING, 1, true)
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
                 } catch (_: Throwable) {
-                    glow = false
                 }
             }
         }
 
-        // Item flags
-        try {
-            if (flags.isNotEmpty()) {
-                meta.addItemFlags(*flags.filterNotNull().toTypedArray())
+        // Name & lore
+        if (hideToolTip) {
+            try { meta.isHideTooltip = true } catch (_: Exception) {}
+        }
+        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer) })
+        if (lore.isNotEmpty()) {
+            meta.lore = try {
+                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer)
+            } catch (_: Throwable) {
+                lore
             }
-        } catch (_: Throwable) {
         }
 
-        // CustomModelData (1.14+)
+        // Glow
         try {
-            if (customModelData != null) meta.setCustomModelData(customModelData)
+            meta.setEnchantmentGlintOverride(glow)
         } catch (_: Throwable) {
+            if (glow) {
+                meta.addEnchant(Enchantment.UNBREAKING, 1, true)
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
+            }
+        }
+
+        // Item flags
+        if (flags.isNotEmpty()) {
+            try {
+                meta.addItemFlags(*flags.filterNotNull().toTypedArray())
+            } catch (_: IllegalArgumentException) { }
+        }
+
+
+        // Custom model data
+        customModelData?.let {
+            try { meta.setCustomModelData(it) } catch (_: Throwable) {}
+        }
+
+        // Enchantments
+        if (enchantments.isNotEmpty()) {
+            enchantments.forEach { (enchantment, lvl) -> meta.addEnchant(enchantment, lvl, true) }
+        }
+
+        // Unbreakable
+        try { meta.isUnbreakable = unbreakable } catch (_: Throwable) {}
+
+        // Damage (durability)
+        damage?.let {
+            if (meta is Damageable) {
+                try { meta.damage = it } catch (_: Throwable) {}
+            }
+        }
+
+        // Attribute modifiers
+        attributeModifiers?.let {
+            try { meta.attributeModifiers = it } catch (_: Throwable) {}
         }
 
         item.itemMeta = meta
         return item
     }
 }
+
 

@@ -1,6 +1,6 @@
 package net.justlime.limeframegui.models
 
-data class ConfigKeys(
+data class FrameConfigKeys(
     var inventoryTitle: String = "title",
     var inventoryRows: String = "rows",
     var inventoryItemSection: String = "items",

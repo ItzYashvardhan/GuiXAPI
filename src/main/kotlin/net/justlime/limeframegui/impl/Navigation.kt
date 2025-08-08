@@ -51,7 +51,8 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
             val lastSlot = page.inventory.size - 1
             val lastRowFirstSlot = lastSlot - 8
 
-            if (id != ChestGUI.GLOBAL_PAGE && id != minPageId) if (prevSlot == -1) page.setItem(lastRowFirstSlot + margin, prevItem, prevOnClick)
+            if (id != ChestGUI.GLOBAL_PAGE && id != minPageId) if (prevSlot == -1)
+                page.setItem(lastRowFirstSlot + margin, prevItem, prevOnClick)
             else page.setItem(prevSlot + margin, prevItem, prevOnClick)
 
             if (id != ChestGUI.GLOBAL_PAGE && id != maxPageId) if (nextSlot == -1) page.setItem(lastSlot - margin, nextItem, nextOnClick)
@@ -60,4 +61,5 @@ class Navigation(private val builder: ChestGUIBuilder, private val handler: GUIE
         }
         if (LimeFrameAPI.debugging)println("Finished Building Navigation")
     }
+
 }

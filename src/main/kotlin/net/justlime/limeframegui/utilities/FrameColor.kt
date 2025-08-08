@@ -3,11 +3,11 @@ package net.justlime.limeframegui.utilities
 import me.clip.placeholderapi.PlaceholderAPI
 import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ColorType
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import java.util.regex.Pattern
 
@@ -23,8 +23,9 @@ object FrameColor {
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String, player: Player? = null): String {
+    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null): String {
         val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps()
+        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name)).toSmallCaps()
         else text.customPlaceholder(player?.name).toSmallCaps()
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
@@ -35,6 +36,10 @@ object FrameColor {
                 toLegacyMini(miniText)
             }
         }
+    }
+
+    fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null): List<String> {
+        return text.map { applyColor(it,player ,offlinePlayer) }
     }
 
     private fun String.replaceLegacyToMini(): String {
@@ -89,18 +94,6 @@ object FrameColor {
         return result.toString()
     }
 
-
-    fun applyColor(text: List<String>, player: Player? = null): List<String> {
-        return text.map { applyColor(it, player) }
-    }
-
-    /**
-     * Only used if the developer explicitly wants a Component for modern APIs.
-     */
-    fun toComponent(text: String): Component {
-        return mini.deserialize(text)
-    }
-
     private fun translateHexToLegacy(input: String): String {
         val matcher = hexPattern.matcher(input)
         val result = StringBuffer()
@@ -109,7 +102,7 @@ object FrameColor {
             val hex = matcher.group(1)
             val chatColor = try {
                 net.md_5.bungee.api.ChatColor.of("#$hex").toString()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 "&r"
             }
             matcher.appendReplacement(result, chatColor)

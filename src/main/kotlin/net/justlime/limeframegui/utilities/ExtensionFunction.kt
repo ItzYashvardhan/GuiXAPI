@@ -1,19 +1,26 @@
 package net.justlime.limeframegui.utilities
 
-import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
 import net.justlime.limeframegui.models.GuiItem
-import org.bukkit.Material
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
-import java.util.*
 
+/**
+ * Converts an [ItemStack] to a [GuiItem].
+ *
+ * This extension function extracts relevant properties from an [ItemStack] and its [ItemMeta]
+ * to create a [GuiItem] object. It handles display name, lore, glow effect, item flags,
+ * custom model data, and skull textures for player heads.
+ *
+ * @return A [GuiItem] representation of the [ItemStack].
+*/
 fun ItemStack.toGuiItem(): GuiItem {
     val meta = this.itemMeta
 
     val displayName = meta?.displayName ?: this.type.name
     val lore = meta?.lore ?: emptyList()
+
     val glow = try {
         if (meta?.hasEnchantmentGlintOverride() == true) {
             meta.enchantmentGlintOverride
@@ -21,46 +28,106 @@ fun ItemStack.toGuiItem(): GuiItem {
             meta?.hasEnchants() == true // fallback for old versions
         }
     } catch (_: Throwable) {
-        meta?.hasEnchants() == true // fallback for 1.8.8
+        meta?.hasEnchants() == true // 1.8.8 fallback
     }
 
-
     val flags = meta?.itemFlags ?: emptySet()
-    val customModelData = if (meta?.hasCustomModelData() == true) meta.customModelData else null
+    val customModelData = try {
+        if (meta?.hasCustomModelData() == true) meta.customModelData else null
+    } catch (_: Throwable) {
+        null
+    }
 
-    // If this is a skull, get texture
+    // Skull texture
     var skullTexture: String? = null
-    if (this.type == Material.PLAYER_HEAD) {
+    if (this.type.name.contains("PLAYER_HEAD", ignoreCase = true) && meta is SkullMeta) {
         skullTexture = SkullUtils.getTextureFromSkull(this)
     }
 
+    // Enchantments
+    val enchantments = meta?.enchants ?: emptyMap()
+
+    // Unbreakable
+    val unbreakable = try {
+        meta?.isUnbreakable == true
+    } catch (_: Throwable) {
+        false
+    }
+
+    // Damage
+    val damage = if (meta is Damageable) {
+        try { meta.damage } catch (_: Throwable) { null }
+    } else null
+
+    // Hide tooltip
+    val hideToolTip = try {
+        meta?.isHideTooltip == true
+    } catch (_: Throwable) {
+        false
+    }
+
+    // Attribute modifiers
+    val attributeModifiers = try {
+        meta?.attributeModifiers
+    } catch (_: Throwable) {
+        null
+    }
+
     return GuiItem(
-        displayName = displayName,
         material = type,
+        displayName = displayName,
         amount = amount,
         lore = lore.toMutableList(),
         glow = glow,
         flags = flags,
         customModelData = customModelData,
-        skullTexture = skullTexture
+        skullTexture = skullTexture,
+        enchantments = enchantments,
+        unbreakable = unbreakable,
+        damage = damage,
+        hideToolTip = hideToolTip,
+        attributeModifiers = attributeModifiers
     )
 }
 
-fun Inventory.addItem(item: GuiItem): List<GuiItem> {
+/**
+ * Adds the given GuiItem to the inventory, returning any items that could not be added.
+ *
+ * @param item The GuiItem to add. If null, nothing is added.
+ * @return A HashMap where keys are the slot indices and values are the ItemStacks that could not be added (e.g., inventory full).
+ */
+fun Inventory.addItem(item: GuiItem?): HashMap<Int, ItemStack> {
+    if (item == null) return hashMapOf()
     val remaining = this.addItem(item.toItemStack()) // returns Map<Int, ItemStack>
-    return remaining.values.map { it.toGuiItem() }   // Convert remaining ItemStacks to GuiItems
+    return remaining.ifEmpty { hashMapOf() }
 }
 
-fun Inventory.addItems(item: List<GuiItem>): List<GuiItem> {
-    val remainingItems = mutableListOf<GuiItem>()
+/**
+ * Adds the given GuiItem to the inventory, returning any items that could not be added.
+ *
+ * @param item The GuiItem to add. If null, nothing is added.
+ * @return A HashMap where keys are the slot indices and values are the ItemStacks that could not be added (e.g., inventory full).
+ */
+fun Inventory.addItems(item: List<GuiItem>): List<HashMap<Int, ItemStack>> {
+    val remainingItems = mutableListOf<HashMap<Int, ItemStack>>()
     item.forEach { guiItem ->
         val remaining = this.addItem(guiItem.toItemStack())
-        remainingItems.addAll(remaining.values.map { it.toGuiItem() })
+        if (remaining.isNotEmpty()) {
+            remainingItems.add(remaining)
+        }
     }
     return remainingItems
 }
 
-fun Inventory.setItem(index: Int, item: GuiItem): Boolean {
+/**
+ * Sets the item at the specified slot in the inventory.
+ *
+ * @param index The slot index where the item should be placed.
+ * @param item The GuiItem to set. If null, the slot will be cleared.
+ * @return True if the item was successfully set, false otherwise (e.g., invalid index).
+ */
+fun Inventory.setItem(index: Int, item: GuiItem?): Boolean {
+    if (item == null) return false
     val stack = item.toItemStack()
     if (index in 0 until this.size) {
         this.setItem(index, stack)
@@ -69,31 +136,64 @@ fun Inventory.setItem(index: Int, item: GuiItem): Boolean {
     return false
 }
 
+/**
+ * Sets the item at the specified slots in the inventory.
+ *
+ * @param index A list of slot indices where the item should be placed.
+ * @param item The GuiItem to set. If null, the slots will be cleared.
+ * @return A list of slot indices where the item could not be set (e.g., invalid index).
+ */
+fun Inventory.setItem(index: List<Int>, item: GuiItem?): List<Int> {
+    val failedSlots = mutableListOf<Int>()
+    for (i in index) {
+        if (!setItem(i, item)) {
+            failedSlots.add(i)
+        }
+    }
+    return failedSlots
+}
+
+/**
+
+ * Removes the item at the specified slot in the inventory.
+ *
+ * @param slot The slot index of the item to remove.
+ * @return True if the item was successfully removed, false otherwise (e.g., invalid index).
+ */
+fun Inventory.remove(slot: Int): Boolean {
+    if (slot >= 0 && slot < this.size) {
+        this.setItem(slot, null)
+        return true
+    }
+    return false
+}
+
+/**
+ * Removes the items at the specified slots in the inventory.
+ *
+ * @param slot A list of slot indices of the items to remove.
+ * @return A list of slot indices where the item could not be removed (e.g., invalid index).
+ */
+fun Inventory.remove(slot: List<Int>): List<Int> {
+    val failedSlots = mutableListOf<Int>()
+    for (i in slot) {
+        if (!remove(i)) {
+            failedSlots.add(i)
+        }
+    }
+    return failedSlots
+}
+
+/**
+ * * Removes the given GuiItem from the inventory.
+ *
+ * @param item The GuiItem to remove.
+ * @return True if the item was successfully removed, false otherwise.
+ */
 fun Inventory.remove(item: GuiItem): Boolean {
     val stackToRemove = item.toItemStack()
     val result = this.removeItem(stackToRemove)
     return result.isEmpty() // If nothing is left, it means removal was successful
-}
-
-fun createSkullWithTexture(texture: String): ItemStack {
-    val skull = ItemStack(Material.PLAYER_HEAD)
-    val meta = skull.itemMeta as SkullMeta
-
-    try {
-        val profile = GameProfile(UUID.randomUUID(), null)
-        val properties = profile.properties
-        properties.put("textures", Property("textures", texture))
-
-        val metaClass = meta.javaClass
-        val profileField = metaClass.getDeclaredField("profile")
-        profileField.isAccessible = true
-        profileField.set(meta, profile)
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-
-    skull.itemMeta = meta
-    return skull
 }
 
 fun Pair<Int, Int>.toSlot(totalRows: Int = 6): Int {

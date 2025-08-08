@@ -75,21 +75,34 @@ class SimpleGUICommand() : CommandHandler {
                 this.nextItem = nextItem
                 this.prevItem = prevItem
                 this.margin = 3
+//                this.nextSlot = 48
+//                this.prevSlot = 51
             }
+
 
             //Global Click handler
             onClick { it.isCancelled = true }
 
             //This item added to every page
-            setItem(item3)
-
-            addPage(6, "Page {page}") {
-                //this item added to specific page only (page 1)
-                addItem(item1) {
-                    it.whoClicked.sendMessage("Clicked on Item 1")
+            //You can used it as Custom Background Design
+            item4.slot = 5
+            setItem(item4){
+                it.whoClicked.sendMessage("You click on global item")
+            }
+            val a = this
+            addPage(id = 2, title = "Kebab Mai Hadi"){
+                item4.slotList = (11..20).toList()
+                setItem(item4){
+                    it.whoClicked.sendMessage("You click on global item")
                 }
-                addItem(item2) {
-                    it.whoClicked.sendMessage("Clicked on Item 2")
+            }
+            addPage(6, "Regular Page {page}") {
+                //this item added to specific page only (page 1)
+                for (i in 1..100) {
+                    val newItem = item1.copy(displayName = "Item $i")
+                    addItem(newItem) {
+                        it.whoClicked.sendMessage("Clicked on Item at ${it.slot} of page $currentPage")
+                    }
                 }
 
                 //Runs for only specific Page (1)
@@ -98,7 +111,7 @@ class SimpleGUICommand() : CommandHandler {
                 }
             }
 
-            setting.title = "Page {page}"
+            setting.title = "Custom Page {page}"
             setting.rows = 3
             addPage {
                 addItem(item3) {
@@ -109,7 +122,7 @@ class SimpleGUICommand() : CommandHandler {
                 }
             }
 
-            addPage(4, "Page {page}") {
+            addPage(4, "Custom Page {page}") {
                 addItem(item4) {
                     it.whoClicked.sendMessage("Clicked on Item ${it.slot} at page $currentPage")
                 }
@@ -177,40 +190,41 @@ class SimpleGUICommand() : CommandHandler {
 
     fun nestedPage(player: Player) {
 
+        //Useful if you gui can various different page
+        //Don't use nav{} //It will give unexpected behaviour
+
         ChestGUI(6, "Nested GUI") {
             onClick { it.isCancelled = true }
 
-            nav {}
-
-            addPage(6, "Page 1") {
-                addItem(ItemStack(Material.STONE).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
-                    openPage(player, 2)
+            addPage(6, "Nested Page 1") {
+                val item1 = ItemStack(Material.PAPER).toGuiItem()
+                item1.displayName = "Go to Nested Page 2"
+                addItem(item1) {
+                    openPage(it.whoClicked as Player, 2)
                 }
-                addPage( 5, "Page 11") {
-                    addItem(ItemStack(Material.DIAMOND).toGuiItem().apply { displayName = "Go to Nested Page 4" }) {
-                        openPage(player, 4)
-                    }
-                    addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 1" }) {
-                        openPage(player, 1)
-                    }
-                    addPage {
-                        addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 3" }) {
-                            openPage(player, 2)
-                        }
-                        addItem(ItemStack(Material.RED_BED).toGuiItem().apply { displayName = "Go to Nested Page 1" }) {
-                            openPage(player, 1)
-                        }
-                    }
 
+                addPage(2, 6, "Nested Page 2") {
+                    val item2 = ItemStack(Material.DIAMOND).toGuiItem()
+                    item2.displayName = "Go back to Nested Page 1"
+                    addItem(item2) {
+                        openPage(it.whoClicked as Player, 1)
+                    }
+                    val item3 = ItemStack(Material.GOLD_INGOT).toGuiItem()
+                    item3.displayName = "Go to Nested Page 3"
+                    addItem(item3) {
+                        openPage(it.whoClicked as Player, 3)
+                    }
+                    addPage(3, 6, "Nested Page 3") {
+                        val item4 = ItemStack(Material.IRON_INGOT).toGuiItem()
+                        item4.displayName = "Go back to Nested Page 2"
+                        addItem(item4) {
+                            openPage(it.whoClicked as Player, 2)
+                        }
+                    }
                 }
 
             }
 
-            addPage {
-                addItem(ItemStack(Material.ENDER_PEARL).toGuiItem().apply { displayName = "Go to Nested Page 1"}){
-                    openPage(player, 1)
-                }
-            }
         }.open(player)
 
     }
