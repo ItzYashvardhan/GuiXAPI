@@ -19,13 +19,13 @@ import org.bukkit.inventory.meta.SkullMeta
  * Represents an item in a LimeFrame GUI.
  *
  * @param material The Bukkit material type of the item.
- * @param displayName The display name of the item.
+ * @param name The display name of the item.
  * @param amount The number of items in the stack (default: 1).
  * @param lore A list of lore lines displayed under the item name.
  * @param glow Whether the item should visually glow.
  * @param flags Item flags to hide or show specific properties in tooltips.
  * @param customModelData Custom model data ID for resource pack integration.
- * @param skullTexture Base64-encoded texture string for custom player heads (only works with PLAYER_HEAD).
+ * @param texture Base64-encoded texture string for custom player heads (only works with PLAYER_HEAD).
  * @param enchantments Map of enchantments and their levels for this item.
  * @param unbreakable Whether the item is unbreakable (no durability loss).
  * @param damage The current damage/durability value of the item (0 = new).
@@ -41,13 +41,13 @@ import org.bukkit.inventory.meta.SkullMeta
 data class GuiItem(
     // Appearance
     var material: Material,
-    var displayName: String? = "",
+    var name: String? = "",
     var amount: Int = 1,
     var lore: List<String> = mutableListOf(),
     var glow: Boolean = false,
     var flags: Collection<ItemFlag?> = emptyList(),
     var customModelData: Int? = null,
-    var skullTexture: String? = null,
+    var texture: String? = null,
 
     // Functional Meta
     var enchantments: Map<Enchantment, Int> = emptyMap(),
@@ -61,6 +61,7 @@ data class GuiItem(
     var slotList: List<Int> = mutableListOf(),
 
     // Placeholder & Dynamic Content
+    var customPlaceholder: Map<String, String>? = null,
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: OfflinePlayer? = null,
     var smallCaps: Boolean? = null,
@@ -71,12 +72,12 @@ data class GuiItem(
 
     companion object {
         fun air(): GuiItem {
-            return GuiItem(displayName = "", material = Material.AIR)
+            return GuiItem(name = "", material = Material.AIR)
         }
     }
 
     fun toItemStack(): ItemStack {
-        val item = if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !skullTexture.isNullOrEmpty()) {
+        val item = if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !texture.isNullOrEmpty()) {
             ItemStack(Material.PLAYER_HEAD, amount)
         } else {
             ItemStack(material, amount)
@@ -85,14 +86,14 @@ data class GuiItem(
         val meta = item.itemMeta ?: return item
 
         // Apply skull texture
-        if (meta is SkullMeta && !skullTexture.isNullOrEmpty()) {
+        if (meta is SkullMeta && !texture.isNullOrEmpty()) {
             try {
-                meta.ownerProfile = SkullProfileCache.getProfile(skullTexture!!)
+                meta.ownerProfile = SkullProfileCache.getProfile(texture!!)
             } catch (_: Throwable) {
                 try {
                     val profileField = meta.javaClass.getDeclaredField("profile")
                     profileField.isAccessible = true
-                    profileField.set(meta, SkullProfileCache.getProfile(skullTexture!!))
+                    profileField.set(meta, SkullProfileCache.getProfile(texture!!))
                 } catch (_: Throwable) {
                 }
             }
@@ -102,10 +103,10 @@ data class GuiItem(
         if (hideToolTip) {
             try { meta.isHideTooltip = true } catch (_: Exception) {}
         }
-        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCaps ) })
+        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCaps, customPlaceholder ) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCaps)
+                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCaps, customPlaceholder)
             } catch (_: Throwable) {
                 lore
             }
@@ -158,5 +159,3 @@ data class GuiItem(
         return item
     }
 }
-
-

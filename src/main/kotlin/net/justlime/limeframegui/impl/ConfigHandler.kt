@@ -55,13 +55,13 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         return with(section) {
             GuiItem(
                 material = Material.getMaterial(getString(keys.material) ?: "AIR") ?: Material.AIR,
-                displayName = getString(keys.name) ?: "",
+                name = getString(keys.name) ?: "",
                 lore = getStringList(keys.lore),
                 glow = getBoolean(keys.glow, false),
                 flags = getStringList(keys.flags).mapNotNull { runCatching { ItemFlag.valueOf(it) }.getOrNull() },
                 customModelData = takeIf { contains(keys.model) }?.getInt(keys.model),
                 amount = getInt(keys.amount, 1),
-                skullTexture = getString(keys.texture),
+                texture = getString(keys.texture),
                 slot = getString(keys.slot)?.toIntOrNull(),
                 slotList = getIntegerList(keys.slotList)
             )
@@ -203,13 +203,13 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
     }
 
     private fun writeItemToSection(section: ConfigurationSection, item: GuiItem) {
-        section.set(keys.name, item.displayName)
+        section.set(keys.name, item.name)
         section.set(keys.material, item.material.name)
         section.set(keys.lore, item.lore)
         section.set(keys.glow, item.glow)
         section.set(keys.flags, item.flags.mapNotNull { it?.name })
         section.set(keys.model, item.customModelData)
-        section.set(keys.texture, item.skullTexture)
+        section.set(keys.texture, item.texture)
         section.set(keys.amount, item.amount)
         item.slot?.let { section.set(keys.slot, it) }
         if (item.slotList.isNotEmpty()) section.set(keys.slotList, item.slotList)

@@ -144,12 +144,7 @@ class ChestGUIBuilder(val setting: GUISetting) {
         val runBlock = to@{
             if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-                // Get the map for the global page, or create it if it doesn't exist.
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
-                globalPage.addItem(item, onClick).let { addedSlot ->
-                    // Add the handler for the slot that was automatically found.
-                    clickHandlers[addedSlot] = onClick
-                }
+                globalPage.addItem(item, onClick)
             }
         }
         if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock()
@@ -160,13 +155,9 @@ class ChestGUIBuilder(val setting: GUISetting) {
         val runBlock = to@{
             if (items.isEmpty() || !visibleCondition()) return@to
             val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-            // Get the map for the global page, or create it if it doesn't exist.
-            val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
             items.forEach { guiItem ->
-                globalPage.addItem(guiItem) { event -> onClick.invoke(guiItem, event) }.let { addedSlot ->
-                    clickHandlers[addedSlot] = { event -> onClick.invoke(guiItem, event) }
-                }
+                globalPage.addItem(guiItem) { event -> onClick.invoke(guiItem, event) }
             }
         }
         if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock
@@ -177,17 +168,14 @@ class ChestGUIBuilder(val setting: GUISetting) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 if (item.slot != null) {
                     globalPage.setItem(item.slot!!, item, onClick)
-                    clickHandlers[item.slot!!] = onClick
                 }
 
                 if (item.slotList.isNotEmpty()) {
                     item.slotList.forEach { slot ->
                         globalPage.setItem(slot, item, onClick)
-                        clickHandlers[slot] = onClick
                     }
                 }
             }
@@ -198,17 +186,14 @@ class ChestGUIBuilder(val setting: GUISetting) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 if (item.slot != null) {
-                    globalPage.setItem(item.slot!!, item)
-                    clickHandlers[item.slot!!] = { event -> onClick.invoke(item, event) }
+                    globalPage.setItem(item.slot!!, item) { event -> onClick.invoke(item, event) }
                 }
 
                 if (item.slotList.isNotEmpty()) {
                     item.slotList.forEach { slot ->
-                        globalPage.setItem(slot, item)
-                        clickHandlers[slot] = { event -> onClick.invoke(item, event) }
+                        globalPage.setItem(slot, item) { event -> onClick.invoke(item, event) }
                     }
                 }
 
@@ -220,11 +205,7 @@ class ChestGUIBuilder(val setting: GUISetting) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && slot != null && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-                // Get the map for the global page, or create it if it doesn't exist.
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
                 globalPage.setItem(slot, item, onClick)
-                // Add the handler for this specific slot.
-                clickHandlers[slot] = onClick
             }
         }
     }
@@ -233,11 +214,9 @@ class ChestGUIBuilder(val setting: GUISetting) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (visibleCondition() && items != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-                val clickHandlers = guiHandler.itemClickHandler.getOrPut(ChestGUI.GLOBAL_PAGE) { mutableMapOf() }
 
                 slot.forEach { currentSlot ->
-                    globalPage.setItem(currentSlot, items)
-                    clickHandlers[currentSlot] = { event -> onClick.invoke(items, event) }
+                    globalPage.setItem(currentSlot, items) { event -> onClick.invoke(items, event) }
                 }
             }
         }

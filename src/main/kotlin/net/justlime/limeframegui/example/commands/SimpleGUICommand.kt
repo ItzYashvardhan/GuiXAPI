@@ -3,9 +3,12 @@ package net.justlime.limeframegui.example.commands
 import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
 import net.justlime.limeframegui.impl.ConfigHandler
+import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
 import net.justlime.limeframegui.utilities.FrameColor
+import net.justlime.limeframegui.utilities.item
+import net.justlime.limeframegui.utilities.setItem
 import net.justlime.limeframegui.utilities.toGuiItem
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -44,25 +47,30 @@ class SimpleGUICommand() : CommandHandler {
                 nestedPage(sender)
             }
 
+            "formatted" ->{
+                formattedPage(sender)
+            }
+
             else -> {}
         }
         return true
     }
 
+
     override fun onTabComplete(
         sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): List<String?> {
         val completion = mutableListOf<String>()
-        if (args.isNotEmpty()) completion.addAll(listOf("save", "page", "home", "nested"))
+        if (args.isNotEmpty()) completion.addAll(listOf("save", "page", "home", "nested", "formatted"))
         return completion
     }
 
     fun pageExample(player: Player) {
 
         val nextItem = ItemStack(Material.ARROW).toGuiItem()
-        nextItem.displayName = "next"
+        nextItem.name = "next"
         val prevItem = ItemStack(Material.ARROW).toGuiItem()
-        prevItem.displayName = "prev"
+        prevItem.name = "prev"
 
         val item1 = ItemStack(Material.PAPER).toGuiItem()
         val item2 = ItemStack(Material.DIAMOND).toGuiItem()
@@ -89,6 +97,8 @@ class SimpleGUICommand() : CommandHandler {
             setItem(item4){
                 it.whoClicked.sendMessage("You click on global item")
             }
+
+
 //            addPage(id = 2, title = "Kebab Mai Hadi"){
 //                item4.slotList = (11..20).toList()
 //                setItem(item4){
@@ -98,7 +108,7 @@ class SimpleGUICommand() : CommandHandler {
             addPage(6, "Regular Page {page}") {
                 //this item added to specific page only (page 1)
                 for (i in 1..100) {
-                    val newItem = item1.copy(displayName = "Item $i")
+                    val newItem = item1.copy(name = "Item $i")
                     addItem(newItem) {
                         it.whoClicked.sendMessage("Removed Item at ${it.currentItem?.itemMeta?.displayName}")
                         remove(it.slot)
@@ -140,7 +150,7 @@ class SimpleGUICommand() : CommandHandler {
             onClick { it.isCancelled = true }
 
             val item = ItemStack(Material.DIAMOND).toGuiItem().apply {
-                displayName = "§aClick Me!"
+                name = "§aClick Me!"
                 lore = mutableListOf("§7This is a simple item.")
             }
 
@@ -153,13 +163,13 @@ class SimpleGUICommand() : CommandHandler {
     fun homePage(player: Player) {
 
         ChestGUI(1, "Home Page") {
-            val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { displayName = "Open Simple GUI" }
+            val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { name = "Open Simple GUI" }
 
             addItem(simpleItem) {
                 simpleGUI().open(it.whoClicked as Player)
             }
 
-            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { displayName = "Open Pager GUI" }
+            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { name = "Open Pager GUI" }
 
             addItem(pageItem) {
                 pageExample(player)
@@ -199,25 +209,25 @@ class SimpleGUICommand() : CommandHandler {
 
             addPage(6, "Nested Page 1") {
                 val item1 = ItemStack(Material.PAPER).toGuiItem()
-                item1.displayName = "Go to Nested Page 2"
+                item1.name = "Go to Nested Page 2"
                 addItem(item1) {
                     openPage(it.whoClicked as Player, 2)
                 }
 
                 addPage(2, 6, "Nested Page 2") {
                     val item2 = ItemStack(Material.DIAMOND).toGuiItem()
-                    item2.displayName = "Go back to Nested Page 1"
+                    item2.name = "Go back to Nested Page 1"
                     addItem(item2) {
                         openPage(it.whoClicked as Player, 1)
                     }
                     val item3 = ItemStack(Material.GOLD_INGOT).toGuiItem()
-                    item3.displayName = "Go to Nested Page 3"
+                    item3.name = "Go to Nested Page 3"
                     addItem(item3) {
                         openPage(it.whoClicked as Player, 3)
                     }
                     addPage(3, 6, "Nested Page 3") {
                         val item4 = ItemStack(Material.IRON_INGOT).toGuiItem()
-                        item4.displayName = "Go back to Nested Page 2"
+                        item4.name = "Go back to Nested Page 2"
                         addItem(item4) {
                             openPage(it.whoClicked as Player, 2)
                         }
@@ -229,6 +239,85 @@ class SimpleGUICommand() : CommandHandler {
         }.open(player)
 
     }
+
+    fun formattedPage(player: Player) {
+
+        FrameColor.colorType = ColorType.MINI_MESSAGE
+
+        ChestGUI(6, "Formatted Page Example") {
+
+            setting.smallCaps = true //Enabled SmallCapsFont
+            setting.placeholderPlayer = player
+
+            onClick { it.isCancelled = true }
+
+            val item1 = GuiItem(
+                Material.PAPER,
+                name = "<gradient:#FF0000:#0000FF>This is a Gradient title</gradient>",
+                lore = listOf(
+                    "<red>This is a red line</red>",
+                    "<green>This is a green line</green>",
+                    "<blue>This is a blue line</blue>"
+                )
+            )
+
+            val item2 = GuiItem(
+                material = Material.GOLD_INGOT,
+                name = "Player: %player_name%",
+                lore = listOf(
+                    "<gold>Balance: %vault_eco_balance%",
+                    "<white>Location: %player_x%, %player_y%, %player_z%"
+                ),
+                smallCaps = false //You can turn On/Off certain small caps for particular item
+            )
+
+            val item3 = GuiItem (
+                material = Material.PLAYER_HEAD,
+                name = "Player: {player}",
+                lore = listOf(
+                    "<green>Playtime Stats: %statistic_time_played%",
+                    "<aqua>Click to refresh"
+                ),
+                texture = "{player}"
+            )
+
+            val item4 = GuiItem(
+                material = Material.TOTEM_OF_UNDYING,
+                name = "<#FF00FF>Custom PlaceHolder</#FF00FF>",
+                lore = listOf(
+                    "<gray>World: {world}</gray>",
+                    "<gray>Location: {location}</gray>"
+                ),
+                customPlaceholder = mapOf(
+                    "{world}" to player.world.name,
+                    "{location}" to "${player.location.x.toInt()}, ${player.location.y.toInt()}, ${player.location.z.toInt()}"
+                )
+            )
+
+            addItem(item1) {
+                it.whoClicked.sendMessage("Clicked formatted item!")
+            }
+
+            addItem(item2) {
+                it.whoClicked.sendMessage("Clicked player placeholder item!")
+            }
+
+            addItem(item3) {event ->
+                println(event.item?.name)
+                println(event.currentItem?.itemMeta?.displayName)
+                event.inventory.setItem(event.slot,event.item)
+            }
+
+            addItem(item3) {event ->
+                println(item3.name)
+                event.inventory.setItem(event.slot,item3) //This may break things not recommended
+            }
+
+            addItem(item4)
+        }.open(player)
+
+    }
+
 
 }
 

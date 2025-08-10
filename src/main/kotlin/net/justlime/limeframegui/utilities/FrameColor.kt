@@ -23,10 +23,10 @@ object FrameColor {
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false): String {
-        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps(smallCaps)
-        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name)).toSmallCaps(smallCaps)
-        else text.customPlaceholder(player?.name).toSmallCaps(smallCaps)
+    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): String {
+        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name, customPlaceholders)).toSmallCaps(smallCaps)
+        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name, customPlaceholders)).toSmallCaps(smallCaps)
+        else text.customPlaceholder(player?.name, customPlaceholders).toSmallCaps(smallCaps)
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
             ColorType.HEX -> translateHexToLegacy(newText)
@@ -38,8 +38,8 @@ object FrameColor {
         }
     }
 
-    fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false): List<String> {
-        return text.map { applyColor(it,player ,offlinePlayer,smallCaps) }
+    fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
+        return text.map { applyColor(it,player ,offlinePlayer,smallCaps, customPlaceholders) }
     }
 
     private fun String.replaceLegacyToMini(): String {
@@ -48,9 +48,13 @@ object FrameColor {
             .replace("§m", "<strikethrough>").replace("§n", "<underlined>").replace("§o", "<italic>").replace("§r", "<reset>")
     }
 
-    private fun String.customPlaceholder(name: String?): String {
-        if (name == null) return this
-        return this.replace("{player}", name)
+    private fun String.customPlaceholder(name: String?, customPlaceholders: Map<String, String>?): String {
+        var result = this
+        if (name != null) {
+            result = result.replace("{player}", name)
+        }
+        customPlaceholders?.forEach { (key, value) -> result = result.replace(key, value) }
+        return result
     }
 
     private fun String.toSmallCaps(smallCaps: Boolean?): String {

@@ -1,10 +1,15 @@
 package net.justlime.limeframegui.utilities
 
 import net.justlime.limeframegui.models.GuiItem
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
+import java.util.WeakHashMap
+
+// Temporary storage for attaching a GuiItem to an InventoryClickEvent.
+private val clickEventItems = WeakHashMap<InventoryClickEvent, GuiItem?>()
 
 /**
  * Converts an [ItemStack] to a [GuiItem].
@@ -75,13 +80,13 @@ fun ItemStack.toGuiItem(): GuiItem {
 
     return GuiItem(
         material = type,
-        displayName = displayName,
+        name = displayName,
         amount = amount,
         lore = lore.toMutableList(),
         glow = glow,
         flags = flags,
         customModelData = customModelData,
-        skullTexture = skullTexture,
+        texture = skullTexture,
         enchantments = enchantments,
         unbreakable = unbreakable,
         damage = damage,
@@ -127,7 +132,10 @@ fun Inventory.addItems(item: List<GuiItem>): List<HashMap<Int, ItemStack>> {
  * @return True if the item was successfully set, false otherwise (e.g., invalid index).
  */
 fun Inventory.setItem(index: Int, item: GuiItem?): Boolean {
-    if (item == null) return false
+    if (item == null) {
+        this.setItem(index, null)
+        return true
+    }
     val stack = item.toItemStack()
     if (index in 0 until this.size) {
         this.setItem(index, stack)
@@ -194,6 +202,7 @@ fun Inventory.remove(item: GuiItem): Boolean {
     val stackToRemove = item.toItemStack()
     val result = this.removeItem(stackToRemove)
     return result.isEmpty() // If nothing is left, it means removal was successful
+
 }
 
 fun Pair<Int, Int>.toSlot(totalRows: Int = 6): Int {
@@ -206,3 +215,19 @@ fun Pair<Int, Int>.toSlot(totalRows: Int = 6): Int {
 
     return (row - 1) * 9 + (col - 1)
 }
+
+
+/**
+ * The GuiItem associated with this click event.
+ *
+ * This property is set by the GUI framework **before** your click handler runs.
+ * It allows you to directly access the clicked GuiItem in your event handler:
+ *
+ * **Note:** This is not persisted outside the event call.
+ * Once the event finishes, the reference will be eligible for Garbage Collection.
+ */
+var InventoryClickEvent.item: GuiItem?
+    get() = clickEventItems[this]
+    set(value) {
+        clickEventItems[this] = value
+    }

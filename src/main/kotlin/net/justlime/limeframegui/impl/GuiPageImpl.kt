@@ -5,6 +5,7 @@ import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.handle.GUIPage
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.models.GuiItem
+import net.justlime.limeframegui.utilities.item
 import net.justlime.limeframegui.utilities.setItem
 import net.justlime.limeframegui.utilities.toGuiItem
 import org.bukkit.entity.Player
@@ -12,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
+
 
 class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventHandler, val setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
     override var inventory = handler.createPageInventory(currentPage, setting)
@@ -40,7 +42,10 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
         findFreeSlot(inventory).takeIf { it != -1 }?.let { slot ->
             inventory.setItem(slot, item)
             trackAddItemSlot[slot] =item to onClick
-            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = onClick
+            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = { event ->
+                event.item = item
+                onClick(event)
+            }
             return slot
         }
 
@@ -117,7 +122,10 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
             if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
             if (item.smallCaps == null) item.smallCaps = setting.smallCaps
             inventory.setItem(index, item)
-            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = onClick
+            handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = { event ->
+                event.item = item
+                onClick(event)
+            }
 
             return index
         }
