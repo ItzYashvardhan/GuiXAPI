@@ -23,7 +23,7 @@ object FrameColor {
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean = false): String {
+    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false): String {
         val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps(smallCaps)
         else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name)).toSmallCaps(smallCaps)
         else text.customPlaceholder(player?.name).toSmallCaps(smallCaps)
@@ -53,8 +53,8 @@ object FrameColor {
         return this.replace("{player}", name)
     }
 
-    private fun String.toSmallCaps(smallCaps: Boolean): String {
-        if (!smallCaps) return this
+    private fun String.toSmallCaps(smallCaps: Boolean?): String {
+        if (smallCaps != true) return this
 
         val result = StringBuilder()
         var inMiniTag = false

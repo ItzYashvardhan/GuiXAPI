@@ -63,7 +63,7 @@ data class GuiItem(
     // Placeholder & Dynamic Content
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: OfflinePlayer? = null,
-    var smallCaps: Boolean = LimeFrameAPI.keys.smallCaps,
+    var smallCaps: Boolean? = null,
 
     // Click Handling
     var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO
