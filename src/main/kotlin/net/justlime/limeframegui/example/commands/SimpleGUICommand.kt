@@ -89,19 +89,20 @@ class SimpleGUICommand() : CommandHandler {
             setItem(item4){
                 it.whoClicked.sendMessage("You click on global item")
             }
-            val a = this
-            addPage(id = 2, title = "Kebab Mai Hadi"){
-                item4.slotList = (11..20).toList()
-                setItem(item4){
-                    it.whoClicked.sendMessage("You click on global item")
-                }
-            }
+//            addPage(id = 2, title = "Kebab Mai Hadi"){
+//                item4.slotList = (11..20).toList()
+//                setItem(item4){
+//                    it.whoClicked.sendMessage("You click on global item")
+//                }
+//            }
             addPage(6, "Regular Page {page}") {
                 //this item added to specific page only (page 1)
                 for (i in 1..100) {
                     val newItem = item1.copy(displayName = "Item $i")
                     addItem(newItem) {
-                        it.whoClicked.sendMessage("Clicked on Item at ${it.slot} of page $currentPage")
+                        it.whoClicked.sendMessage("Removed Item at ${it.currentItem?.itemMeta?.displayName}")
+                        remove(it.slot)
+
                     }
                 }
 

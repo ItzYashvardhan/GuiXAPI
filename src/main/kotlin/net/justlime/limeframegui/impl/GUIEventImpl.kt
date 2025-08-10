@@ -15,7 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin
 /**
  * The core implementation of the GUI handler.
  *
- * This refined version simplifies handler management, improves event processing logic,
+ * It simplifies event handler management, improves event processing logic,
  * and adds the ability to open specific pages.
  *
  * @param setting The basic settings for the GUI (title, rows).
@@ -75,7 +75,7 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         val size = setting.rows * 9
         val title = setting.title.replace("{page}", id.toString())
-        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer)
+        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,setting.smallCaps)
 
         val inv = Bukkit.createInventory(this, size, coloredTitle)
         pageInventories[id] = inv

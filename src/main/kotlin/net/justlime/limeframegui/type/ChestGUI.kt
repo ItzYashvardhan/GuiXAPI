@@ -16,7 +16,8 @@ class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) 
 
     private val guiHandler: GUIEventHandler
     private val pages: MutableMap<Int, Inventory>
-    private var minPageId: Int
+    val minPageId: Int
+    val maxPageId: Int
 
     init {
         val builder = ChestGUIBuilder(setting)
@@ -24,6 +25,7 @@ class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) 
         this.guiHandler = builder.build()
         pages = guiHandler.pageInventories
         minPageId = pages.keys.filter { it != GLOBAL_PAGE }.minOrNull() ?: 0
+        maxPageId = pages.keys.maxOrNull() ?: 0
     }
 
     /**

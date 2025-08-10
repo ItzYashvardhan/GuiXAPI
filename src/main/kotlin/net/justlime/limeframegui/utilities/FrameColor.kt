@@ -23,10 +23,10 @@ object FrameColor {
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null): String {
-        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps()
-        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name)).toSmallCaps()
-        else text.customPlaceholder(player?.name).toSmallCaps()
+    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean = false): String {
+        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name)).toSmallCaps(smallCaps)
+        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name)).toSmallCaps(smallCaps)
+        else text.customPlaceholder(player?.name).toSmallCaps(smallCaps)
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
             ColorType.HEX -> translateHexToLegacy(newText)
@@ -53,8 +53,8 @@ object FrameColor {
         return this.replace("{player}", name)
     }
 
-    private fun String.toSmallCaps(): String {
-        if (!LimeFrameAPI.keys.smallCaps) return this
+    private fun String.toSmallCaps(smallCaps: Boolean): String {
+        if (!smallCaps) return this
 
         val result = StringBuilder()
         var inMiniTag = false

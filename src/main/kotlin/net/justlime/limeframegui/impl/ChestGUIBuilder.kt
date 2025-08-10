@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.impl
 
+import jdk.nashorn.internal.objects.Global
 import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ChestGuiActions
 import net.justlime.limeframegui.handle.GUIPage
@@ -21,7 +22,6 @@ import kotlin.to
  */
 class ChestGUIBuilder(val setting: GUISetting) {
 
-
     // Pages are temporarily stored here before being moved to the handler.
     val pages = mutableMapOf<Int, GUIPage>()
 
@@ -36,8 +36,7 @@ class ChestGUIBuilder(val setting: GUISetting) {
 
     init {
         // The global page (ID 0) is created immediately to hold shared items.
-        // It uses the GuiImpl as its holder, which is a key part of the design.
-        pages[ChestGUI.GLOBAL_PAGE] = GuiPageImpl(ChestGUI.GLOBAL_PAGE, guiHandler, setting, this)
+        pages[ChestGUI.GLOBAL_PAGE] = createPage(ChestGUI.GLOBAL_PAGE, setting)
     }
 
     // --- Global Event Handlers ---
@@ -276,10 +275,10 @@ class ChestGUIBuilder(val setting: GUISetting) {
      */
     fun build(): GUIEventImpl {
         actions.sortedBy { it.first.priority }.forEach { (action, block) ->
-                currentExecutingAction = action
-                block()
-                currentExecutingAction = null
-            }
+            currentExecutingAction = action
+            block()
+            currentExecutingAction = null
+        }
 
         pages.forEach { (id, page) ->
             guiHandler.pageInventories[id] = page.inventory

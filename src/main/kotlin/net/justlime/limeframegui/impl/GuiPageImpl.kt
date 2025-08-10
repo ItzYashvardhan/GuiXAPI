@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
 
-class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHandler, val setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
+class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventHandler, val setting: GUISetting, private val builder: ChestGUIBuilder) : GUIPage {
     override var inventory = handler.createPageInventory(currentPage, setting)
 
     override fun getItems(): Map<Int, GuiItem> {
@@ -26,9 +26,10 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
     }
 
     private var trackPageId = currentPage
+    override var trackAddItemSlot = mutableMapOf<Int, Pair<GuiItem, (InventoryClickEvent) -> Unit>>()
+
     override fun addItem(item: GuiItem, onClick: (InventoryClickEvent) -> Unit): Int {
-        fun findFreeSlot(inv: Inventory): Int =
-            (0 until inv.size).firstOrNull { it !in getReservedSlots(inv) && inv.getItem(it) == null } ?: -1
+        fun findFreeSlot(inv: Inventory): Int = (0 until inv.size).firstOrNull { it !in getReservedSlots(inv) && inv.getItem(it) == null } ?: -1
 
         // Apply placeholders from setting if not set
         if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
@@ -37,6 +38,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
         // Try current page
         findFreeSlot(inventory).takeIf { it != -1 }?.let { slot ->
             inventory.setItem(slot, item)
+            trackAddItemSlot[slot] =item to onClick
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = onClick
             return slot
         }
@@ -57,6 +59,8 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
         handler.pageInventories[nextPageId]?.let { inv ->
             findFreeSlot(inv).takeIf { it != -1 }?.let { slot ->
                 inv.setItem(slot, item)
+                builder.pages[nextPageId]?.trackAddItemSlot[slot] = item to onClick
+
                 handler.itemClickHandler.computeIfAbsent(nextPageId) { mutableMapOf() }[slot] = onClick
                 return slot
             }
@@ -73,7 +77,6 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
         return newSlot
     }
 
-
     private fun getReservedSlots(inventory: Inventory): Set<Int> {
         val lastSlot = inventory.size - 1
         val lastRowFirstSlot = lastSlot - 8
@@ -83,7 +86,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
             // Handle next page slot
             if (builder.reservedSlot.nextPageSlot != -1) {
                 add(builder.reservedSlot.nextPageSlot)
-            } else if (builder.reservedSlot.enableNavSlotReservation){
+            } else if (builder.reservedSlot.enableNavSlotReservation) {
                 add(lastSlot - margin)
                 builder.reservedSlot.otherSlot.addAll(lastRowFirstSlot..lastSlot)
             }
@@ -91,7 +94,7 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
             // Handle previous page slot
             if (builder.reservedSlot.prevPageSlot != -1) {
                 add(builder.reservedSlot.prevPageSlot)
-            } else if(builder.reservedSlot.enableNavSlotReservation) {
+            } else if (builder.reservedSlot.enableNavSlotReservation) {
                 add(lastRowFirstSlot + margin)
                 builder.reservedSlot.otherSlot.addAll(lastRowFirstSlot..lastSlot)
             }
@@ -101,16 +104,9 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
         }
     }
 
-
     override fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit)) {
-        items.forEach { item ->
-            val slot = inventory.firstEmpty()
-            if (slot != -1) {
-                if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
-                if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderPlayer
-                inventory.setItem(slot, item)
-                handler.itemClickHandler[currentPage] = mutableMapOf(slot to { event -> onClick.invoke(item, event) })
-            }
+        items.forEach { guiItem ->
+            addItem(guiItem) { event -> onClick.invoke(guiItem, event) }
         }
     }
 
@@ -127,28 +123,65 @@ class GuiPageImpl(override val currentPage: Int, private val handler: GUIEventHa
 
     }
 
-    override fun removeItem(item: GuiItem): GUIPage {
-        val slot = item.slot
-        val slots = item.slotList
-        if (slot != null) {
-            removeItem(slot)
-        }
-        if (slots.isNotEmpty()) {
-            slots.forEach { removeItem(it) }
-        }
-        return this
-    }
+    override fun remove(slot: Int): GUIPage {
 
-    override fun removeItem(slot: Int): GUIPage {
-        if (slot >= -1 && slot < inventory.size) {
+        // Ensure the item being removed is a dynamically added one on the current page.
+        if (builder.pages[currentPage]?.trackAddItemSlot?.containsKey(slot) != true) {
+            // If not, just clear the slot and do nothing else.
             inventory.setItem(slot, null)
             handler.itemClickHandler[currentPage]?.remove(slot)
+            return this
+        }
+
+        // 1. Collect all dynamically added items from all pages into a single, ordered list.
+        // This list will represent the continuous space that items occupy.
+        val dynamicItems = mutableListOf<Triple<Int, Int, Pair<GuiItem, (InventoryClickEvent) -> Unit>>>()
+        builder.pages.toSortedMap().forEach { (pageId, guiPage) ->
+            // Sort by slot to ensure items on the same page are in order.
+            guiPage.trackAddItemSlot.toSortedMap().forEach { (itemSlot, itemData) ->
+                dynamicItems.add(Triple(pageId, itemSlot, itemData))
+            }
+        }
+
+        // 2. Find the linear index of the item we need to remove.
+        val removalIndex = dynamicItems.indexOfFirst { (pageId, itemSlot, _) ->
+            pageId == currentPage && itemSlot == slot
+        }
+
+        // This should always be found due to the initial check, but as a safeguard:
+        if (removalIndex == -1) return this
+
+        // 3. Shift all subsequent items forward by one position.
+        // We iterate from the removal index to the second-to-last item.
+        for (i in removalIndex until dynamicItems.size - 1) {
+            val targetLocation = dynamicItems[i]
+            val sourceItem = dynamicItems[i + 1]
+
+            val targetPageId = targetLocation.first
+            val targetSlot = targetLocation.second
+            val (sourceItemData, sourceClickHandler) = sourceItem.third
+
+            val targetPage = builder.pages[targetPageId] ?: continue
+
+            // Move the source item to the target slot.
+            targetPage.setItem(targetSlot, sourceItemData, sourceClickHandler)
+            targetPage.trackAddItemSlot[targetSlot] = sourceItem.third
+        }
+
+        // 4. Clear the last item's original slot, as it has now been moved.
+        dynamicItems.lastOrNull()?.let { lastItemLocation ->
+            val (lastItemPageId, lastItemSlot) = lastItemLocation
+            val lastItemPage = builder.pages[lastItemPageId]
+            lastItemPage?.inventory?.setItem(lastItemSlot, null)
+            handler.itemClickHandler[lastItemPageId]?.remove(lastItemSlot)
+            lastItemPage?.trackAddItemSlot?.remove(lastItemSlot)
         }
         return this
     }
 
-    override fun removeItem(slotList: List<Int>): GUIPage {
-        slotList.forEach { removeItem(it) }
+    override fun remove(slotList: List<Int>): GUIPage {
+        // Sort descending to avoid index shifting issues when removing multiple items.
+        slotList.sortedDescending().forEach { remove(it) }
         return this
     }
 

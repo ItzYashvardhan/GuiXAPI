@@ -1,6 +1,7 @@
 package net.justlime.limeframegui.models
 
 import com.google.common.collect.Multimap
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
@@ -62,6 +63,7 @@ data class GuiItem(
     // Placeholder & Dynamic Content
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: OfflinePlayer? = null,
+    var smallCaps: Boolean = LimeFrameAPI.keys.smallCaps,
 
     // Click Handling
     var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO
@@ -100,7 +102,7 @@ data class GuiItem(
         if (hideToolTip) {
             try { meta.isHideTooltip = true } catch (_: Exception) {}
         }
-        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer) })
+        meta.setDisplayName(displayName?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCaps ) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
                 FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer)
