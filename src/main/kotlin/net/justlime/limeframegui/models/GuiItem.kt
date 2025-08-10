@@ -35,7 +35,8 @@ import org.bukkit.inventory.meta.SkullMeta
  * @param slotList Multiple slot indices to place the same item in several slots.
  * @param placeholderPlayer Player object used for applying placeholders in displayName and lore.
  * @param placeholderOfflinePlayer OfflinePlayer object used for applying placeholders in displayName and lore.
- * @param smallCaps Whether to apply small caps formatting to the display name and lore.
+ * @param smallCapsName Whether to apply small caps formatting to the display name.
+ * @param smallCapsLore Whether to apply small caps formatting to the lore.
  * @param onClickBlock Event callback invoked when this item is clicked in the GUI (TODO).
  */
 data class GuiItem(
@@ -64,7 +65,8 @@ data class GuiItem(
     var customPlaceholder: Map<String, String>? = null,
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: OfflinePlayer? = null,
-    var smallCaps: Boolean? = null,
+    var smallCapsName: Boolean? = null,
+    var smallCapsLore: Boolean? = null,
 
     // Click Handling
     var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO
@@ -103,10 +105,10 @@ data class GuiItem(
         if (hideToolTip) {
             try { meta.isHideTooltip = true } catch (_: Exception) {}
         }
-        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCaps, customPlaceholder ) })
+        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCapsName, customPlaceholder ) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCaps, customPlaceholder)
+                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCapsLore, customPlaceholder)
             } catch (_: Throwable) {
                 lore
             }

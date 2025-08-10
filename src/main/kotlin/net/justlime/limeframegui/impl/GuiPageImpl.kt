@@ -36,7 +36,8 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
         // Apply placeholders from setting if not set
         if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
         if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
-        if (item.smallCaps == null) item.smallCaps = setting.smallCaps
+        if (item.smallCapsName == null) item.smallCapsName = setting.smallCapsItemName
+        if (item.smallCapsLore == null) item.smallCapsLore = setting.smallCapsItemLore
 
         // Try current page
         findFreeSlot(inventory).takeIf { it != -1 }?.let { slot ->
@@ -120,7 +121,8 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
         if (index < inventory.size) {
             if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
             if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
-            if (item.smallCaps == null) item.smallCaps = setting.smallCaps
+            if (item.smallCapsName == null) item.smallCapsName = setting.smallCapsItemName
+            if (item.smallCapsLore == null) item.smallCapsLore = setting.smallCapsItemLore
             inventory.setItem(index, item)
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = { event ->
                 event.item = item

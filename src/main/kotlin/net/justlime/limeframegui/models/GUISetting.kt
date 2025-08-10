@@ -10,6 +10,8 @@ data class GUISetting(
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: Player? = null,
     var customPlaceholder: Map<String, String>? = null,
-    var smallCaps: Boolean? = LimeFrameAPI.keys.smallCaps,
+    var smallCapsTitle: Boolean? = LimeFrameAPI.keys.smallCaps,
+    var smallCapsItemName: Boolean? = LimeFrameAPI.keys.smallCaps,
+    var smallCapsItemLore: Boolean? = LimeFrameAPI.keys.smallCaps,
     var type: InventoryType = InventoryType.CHEST,
 )

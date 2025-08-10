@@ -246,7 +246,9 @@ class SimpleGUICommand() : CommandHandler {
 
         ChestGUI(6, "Formatted Page Example") {
 
-            setting.smallCaps = true //Enabled SmallCapsFont
+            setting.smallCapsTitle = true //Enabled SmallCapsFont for title
+            setting.smallCapsItemName = true //Enabled SmallCapsFont for item name
+            setting.smallCapsItemLore = true //Enabled SmallCapsFont for item lore
             setting.placeholderPlayer = player
 
             onClick { it.isCancelled = true }
@@ -268,7 +270,8 @@ class SimpleGUICommand() : CommandHandler {
                     "<gold>Balance: %vault_eco_balance%",
                     "<white>Location: %player_x%, %player_y%, %player_z%"
                 ),
-                smallCaps = false //You can turn On/Off certain small caps for particular item
+                smallCapsName = false, //You can turn On/Off certain small caps for particular item
+                smallCapsLore = false
             )
 
             val item3 = GuiItem (
@@ -320,4 +323,3 @@ class SimpleGUICommand() : CommandHandler {
 
 
 }
-
