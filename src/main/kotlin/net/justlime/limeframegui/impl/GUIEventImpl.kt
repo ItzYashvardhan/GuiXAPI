@@ -76,10 +76,9 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         val size = setting.rows * 9
         val title = setting.title.replace("{page}", id.toString())
-        val smallCaps = if (setting.smallCaps==null) LimeFrameAPI.keys.smallCaps else setting.smallCaps
 
 
-        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,smallCaps)
+        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,setting.smallCaps)
 
         val inv = Bukkit.createInventory(this, size, coloredTitle)
         pageInventories[id] = inv
