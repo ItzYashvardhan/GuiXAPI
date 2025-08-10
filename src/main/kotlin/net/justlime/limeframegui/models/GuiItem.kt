@@ -35,6 +35,7 @@ import org.bukkit.inventory.meta.SkullMeta
  * @param slotList Multiple slot indices to place the same item in several slots.
  * @param placeholderPlayer Player object used for applying placeholders in displayName and lore.
  * @param placeholderOfflinePlayer OfflinePlayer object used for applying placeholders in displayName and lore.
+ * @param smallCaps Whether to apply small caps formatting to the display name and lore.
  * @param onClickBlock Event callback invoked when this item is clicked in the GUI (TODO).
  */
 data class GuiItem(

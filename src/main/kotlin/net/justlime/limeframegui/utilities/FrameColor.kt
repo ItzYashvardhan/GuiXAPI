@@ -39,7 +39,7 @@ object FrameColor {
     }
 
     fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false): List<String> {
-        return text.map { applyColor(it,player ,offlinePlayer) }
+        return text.map { applyColor(it,player ,offlinePlayer,smallCaps) }
     }
 
     private fun String.replaceLegacyToMini(): String {
