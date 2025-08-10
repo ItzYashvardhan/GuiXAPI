@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.type.ChestGUI
@@ -75,7 +76,10 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         val size = setting.rows * 9
         val title = setting.title.replace("{page}", id.toString())
-        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,setting.smallCaps)
+        val smallCaps = if (setting.smallCaps==null) LimeFrameAPI.keys.smallCaps else setting.smallCaps
+
+
+        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,smallCaps)
 
         val inv = Bukkit.createInventory(this, size, coloredTitle)
         pageInventories[id] = inv

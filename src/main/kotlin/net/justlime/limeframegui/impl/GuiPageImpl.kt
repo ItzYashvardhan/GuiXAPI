@@ -114,7 +114,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)): Int {
         if (index < inventory.size) {
             if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
-            if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderPlayer
+            if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
             if (item.smallCaps == null) item.smallCaps = setting.smallCaps
             inventory.setItem(index, item)
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = onClick

@@ -1,7 +1,6 @@
 package net.justlime.limeframegui.models
 
 import com.google.common.collect.Multimap
-import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.utilities.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
@@ -105,7 +104,7 @@ data class GuiItem(
         meta.setDisplayName(displayName?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCaps ) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer)
+                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCaps)
             } catch (_: Throwable) {
                 lore
             }
