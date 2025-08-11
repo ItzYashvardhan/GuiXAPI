@@ -14,7 +14,7 @@ import java.util.regex.Pattern
 object FrameColor {
     var colorType: ColorType = ColorType.LEGACY
 
-    private val legacy = LegacyComponentSerializer.legacySection()
+    private val legacy = LegacyComponentSerializer.builder().character('§').hexColors().build()
     private val hexPattern = Pattern.compile("(?i)&#([A-Fa-f0-9]{6})")
     private val mini by lazy { MiniMessage.miniMessage() }
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
@@ -23,23 +23,30 @@ object FrameColor {
      * Apply color formatting based on the current ColorType.
      * Always returns a String — suitable for GUI APIs (1.8+ safe).
      */
-    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): String {
-        val newText = if (isPlaceholderAPIEnabled && player != null) PlaceholderAPI.setPlaceholders(player, text.customPlaceholder(player.name, customPlaceholders)).toSmallCaps(smallCaps)
-        else if (isPlaceholderAPIEnabled && offlinePlayer != null) PlaceholderAPI.setPlaceholders(offlinePlayer, text.customPlaceholder(offlinePlayer.name, customPlaceholders)).toSmallCaps(smallCaps)
-        else text.customPlaceholder(player?.name, customPlaceholders).toSmallCaps(smallCaps)
+    fun applyColor(text: String, player: Player? = null, offlinePlayer: OfflinePlayer? = null, smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): String {
+        var newText = text
+
+        val playerName = player?.name ?: offlinePlayer?.name
+        newText = newText.customPlaceholder(playerName, customPlaceholders)
+
+        if (isPlaceholderAPIEnabled) {
+            newText = when {
+                player != null -> PlaceholderAPI.setPlaceholders(player, newText)
+                offlinePlayer != null -> PlaceholderAPI.setPlaceholders(offlinePlayer, newText)
+                else -> newText
+            }
+        }
+
+        newText = newText.toSmallCaps(smallCaps)
+
         return when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
-            ColorType.HEX -> translateHexToLegacy(newText)
-            ColorType.MINI_MESSAGE -> {
-                val legacyText = ChatColor.translateAlternateColorCodes('&', newText)
-                val miniText = legacyText.replaceLegacyToMini()
-                toLegacyMini(miniText)
-            }
+            ColorType.MINI_MESSAGE -> toLegacyMini(newText)
         }
     }
 
-    fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
-        return text.map { applyColor(it,player ,offlinePlayer,smallCaps, customPlaceholders) }
+    fun applyColor(text: List<String>, player: Player? = null, offlinePlayer: OfflinePlayer? = null, smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
+        return text.map { applyColor(it, player, offlinePlayer, smallCaps, customPlaceholders) }
     }
 
     private fun String.replaceLegacyToMini(): String {
@@ -96,24 +103,6 @@ object FrameColor {
         }
 
         return result.toString()
-    }
-
-    private fun translateHexToLegacy(input: String): String {
-        val matcher = hexPattern.matcher(input)
-        val result = StringBuffer()
-
-        while (matcher.find()) {
-            val hex = matcher.group(1)
-            val chatColor = try {
-                net.md_5.bungee.api.ChatColor.of("#$hex").toString()
-            } catch (_: Exception) {
-                "&r"
-            }
-            matcher.appendReplacement(result, chatColor)
-        }
-
-        matcher.appendTail(result)
-        return ChatColor.translateAlternateColorCodes('&', result.toString())
     }
 
     private fun toLegacyMini(text: String): String {

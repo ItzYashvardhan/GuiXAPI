@@ -255,7 +255,7 @@ class SimpleGUICommand() : CommandHandler {
 
             val item1 = GuiItem(
                 Material.PAPER,
-                name = "<gradient:#FF0000:#0000FF>This is a Gradient title</gradient>",
+                name = "<gradient:red:blue>This is a Gradient title</gradient>",
                 lore = listOf(
                     "<red>This is a red line</red>",
                     "<green>This is a green line</green>",
@@ -290,11 +290,13 @@ class SimpleGUICommand() : CommandHandler {
                 lore = listOf(
                     "<gray>World: {world}</gray>",
                     "<gray>Location: {location}</gray>"
+
                 ),
                 customPlaceholder = mapOf(
                     "{world}" to player.world.name,
                     "{location}" to "${player.location.x.toInt()}, ${player.location.y.toInt()}, ${player.location.z.toInt()}"
-                )
+                ),
+                smallCapsName = false
             )
 
             addItem(item1) {

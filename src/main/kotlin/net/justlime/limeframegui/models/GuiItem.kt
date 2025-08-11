@@ -88,15 +88,42 @@ data class GuiItem(
         val meta = item.itemMeta ?: return item
 
         // Apply skull texture
+        // Apply skull texture
         if (meta is SkullMeta && !texture.isNullOrEmpty()) {
-            try {
-                meta.ownerProfile = SkullProfileCache.getProfile(texture!!)
-            } catch (_: Throwable) {
+            // --- Player Placeholder Logic ---
+            // Check if the texture value is a placeholder for the player's own head.
+            if (texture.equals("{player}", ignoreCase = true)) {
+
+                // Prioritize the online player for the most accurate and up-to-date skin profile.
+                if (placeholderPlayer != null) {
+                    // For modern versions (1.18+), setting the playerProfile directly is the best method.
+                    // This works reliably for online players.
+                    meta.ownerProfile = placeholderPlayer!!.playerProfile
+                }
+                // Fallback to the OfflinePlayer if the online player isn't available.
+                else if (placeholderOfflinePlayer != null) {
+                    // setOwningPlayer is the universal method for both premium and cracked servers.
+                    meta.owningPlayer = placeholderOfflinePlayer
+                }
+
+            }
+            // --- Custom Base64 Texture Logic ---
+            // If it's not a placeholder, treat it as a custom texture value.
+            else {
                 try {
-                    val profileField = meta.javaClass.getDeclaredField("profile")
-                    profileField.isAccessible = true
-                    profileField.set(meta, SkullProfileCache.getProfile(texture!!))
+                    // Primary method: Set the owner profile directly. This is the modern standard.
+                    meta.ownerProfile = SkullProfileCache.getProfile(texture!!)
                 } catch (_: Throwable) {
+                    // Fallback method: Use reflection for older/problematic server versions.
+                    // This provides broader compatibility by accessing the internal "profile" field.
+                    try {
+                        val profileField = meta.javaClass.getDeclaredField("profile")
+                        profileField.isAccessible = true
+                        profileField.set(meta, SkullProfileCache.getProfile(texture!!))
+                    } catch (e: Throwable) {
+                        // If both methods fail, the texture cannot be applied.
+                        // You could add an error log here if desired.
+                    }
                 }
             }
         }
