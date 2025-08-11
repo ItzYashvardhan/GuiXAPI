@@ -14,7 +14,7 @@ import java.util.regex.Pattern
 object FrameColor {
     var colorType: ColorType = ColorType.LEGACY
 
-    private val legacy = LegacyComponentSerializer.builder().character('§').hexColors().build()
+    private val legacy = LegacyComponentSerializer.legacySection()
     private val hexPattern = Pattern.compile("(?i)&#([A-Fa-f0-9]{6})")
     private val mini by lazy { MiniMessage.miniMessage() }
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
@@ -45,8 +45,8 @@ object FrameColor {
         }
     }
 
-    fun applyColor(text: List<String>, player: Player? = null, offlinePlayer: OfflinePlayer? = null, smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
-        return text.map { applyColor(it, player, offlinePlayer, smallCaps, customPlaceholders) }
+    fun applyColor(text: List<String>,player: Player? = null ,offlinePlayer: OfflinePlayer? = null,smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
+        return text.map { applyColor(it,player ,offlinePlayer,smallCaps, customPlaceholders) }
     }
 
     private fun String.replaceLegacyToMini(): String {
