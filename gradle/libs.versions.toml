@@ -17,8 +17,9 @@ annotaiton = "23.0.0"
 reflection = "2.1.0"
 
 # Implementation
-adventure-platform = "4.4.0"
-adventure-minimessage = "4.21.0"
+adventure-platform = "4.4.1"
+adventure = "4.24.0"
+
 
 [libraries]
 #Core
@@ -33,8 +34,8 @@ authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
 papi = { module = "me.clip:placeholderapi", version.ref = "papi_version" }
 
 #Mini Message
-adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
-adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-minimessage" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-legacy = {module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure"}
 
 
 
