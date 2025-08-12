@@ -36,7 +36,10 @@ fun ItemStack.toGuiItem(): GuiItem {
         meta?.hasEnchants() == true // 1.8.8 fallback
     }
 
-    val flags = meta?.itemFlags ?: emptySet()
+    val flags = meta?.itemFlags
+        ?.map { it} // store as string for compatibility
+        ?: emptyList()
+
     val customModelData = try {
         if (meta?.hasCustomModelData() == true) meta.customModelData else null
     } catch (_: Throwable) {

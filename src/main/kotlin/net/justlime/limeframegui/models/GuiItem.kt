@@ -46,7 +46,7 @@ data class GuiItem(
     var amount: Int = 1,
     var lore: List<String> = mutableListOf(),
     var glow: Boolean = false,
-    var flags: Collection<ItemFlag?> = emptyList(),
+    var flags: List<ItemFlag> = emptyList(),
     var customModelData: Int? = null,
     var texture: String? = null,
 
@@ -130,12 +130,15 @@ data class GuiItem(
 
         // Name & lore
         if (hideToolTip) {
-            try { meta.isHideTooltip = true } catch (_: Exception) {}
+            try {
+                meta.isHideTooltip = true
+            } catch (_: Exception) {
+            }
         }
-        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer,smallCapsName, customPlaceholder ) })
+        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer,smallCapsLore, customPlaceholder)
+                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer, smallCapsLore, customPlaceholder)
             } catch (_: Throwable) {
                 lore
             }
@@ -154,14 +157,19 @@ data class GuiItem(
         // Item flags
         if (flags.isNotEmpty()) {
             try {
-                meta.addItemFlags(*flags.filterNotNull().toTypedArray())
-            } catch (_: IllegalArgumentException) { }
-        }
+                meta.addItemFlags(*flags.toTypedArray())
 
+            } catch (_: Throwable) {
+
+            }
+        }
 
         // Custom model data
         customModelData?.let {
-            try { meta.setCustomModelData(it) } catch (_: Throwable) {}
+            try {
+                meta.setCustomModelData(it)
+            } catch (_: Throwable) {
+            }
         }
 
         // Enchantments
@@ -170,18 +178,27 @@ data class GuiItem(
         }
 
         // Unbreakable
-        try { meta.isUnbreakable = unbreakable } catch (_: Throwable) {}
+        try {
+            meta.isUnbreakable = unbreakable
+        } catch (_: Throwable) {
+        }
 
         // Damage (durability)
         damage?.let {
             if (meta is Damageable) {
-                try { meta.damage = it } catch (_: Throwable) {}
+                try {
+                    meta.damage = it
+                } catch (_: Throwable) {
+                }
             }
         }
 
         // Attribute modifiers
         attributeModifiers?.let {
-            try { meta.attributeModifiers = it } catch (_: Throwable) {}
+            try {
+                meta.attributeModifiers = it
+            } catch (_: Throwable) {
+            }
         }
 
         item.itemMeta = meta
