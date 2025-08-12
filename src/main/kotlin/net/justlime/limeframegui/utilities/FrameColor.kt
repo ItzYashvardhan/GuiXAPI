@@ -12,7 +12,7 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 object FrameColor {
-    lateinit var legacy: LegacyComponentSerializer
+    var legacy: LegacyComponentSerializer = LegacyComponentSerializer.legacySection()
     var colorType: ColorType = ColorType.LEGACY
 
     private val mini by lazy { MiniMessage.miniMessage() }
