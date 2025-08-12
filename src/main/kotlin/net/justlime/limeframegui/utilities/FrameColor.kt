@@ -14,7 +14,7 @@ import org.bukkit.entity.Player
 object FrameColor {
     var colorType: ColorType = ColorType.LEGACY
 
-    private val legacy = LegacyComponentSerializer.legacySection()
+    var legacy = LegacyComponentSerializer.legacySection()
     private val mini by lazy { MiniMessage.miniMessage() }
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
 
