@@ -12,9 +12,9 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 object FrameColor {
+    lateinit var legacy: LegacyComponentSerializer
     var colorType: ColorType = ColorType.LEGACY
 
-    var legacy = LegacyComponentSerializer.legacySection()
     private val mini by lazy { MiniMessage.miniMessage() }
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
 
@@ -115,7 +115,6 @@ object FrameColor {
         return try {
             val component: Component = mini.deserialize(text)
             val legacy = legacy.serialize(component.compact())
-            println(legacy)
             legacy
         } catch (e: Exception) {
             println(e.message)
