@@ -9,15 +9,13 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 object FrameColor {
-    val legacy: Any? by lazy {
-        try {
-            // Reflection to avoid class resolution on load
-            val clazz = Class.forName("net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer")
-            val method = clazz.getMethod("legacySection")
-            method.invoke(null) // static call
-        } catch (_: Throwable) {
-            null
-        }
+    var legacy: Any? = try {
+        // Reflection to avoid class resolution on load
+        val clazz = Class.forName("net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer")
+        val method = clazz.getMethod("legacySection")
+        method.invoke(null) // static call
+    } catch (_: Throwable) {
+        null
     }
 
     var colorType: ColorType = ColorType.LEGACY
@@ -58,7 +56,7 @@ object FrameColor {
                 newText = newText.replaceLegacyToMini()
                 try {
                     fromLegacyMini(newText)
-                }catch (_: Exception){
+                } catch (_: Exception) {
                     newText
                 }
             }
@@ -133,15 +131,13 @@ object FrameColor {
             // If legacy serializer and MiniMessage are available
             if (legacy != null && mini != null) {
                 val deserializeLegacy = legacy!!::class.java.getMethod(
-                    "deserialize",
-                    String::class.java
+                    "deserialize", String::class.java
                 )
                 val component = deserializeLegacy.invoke(legacy, text)
 
                 val miniMessageClass = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage")
                 val serializeMini = miniMessageClass.getMethod(
-                    "serialize",
-                    Class.forName("net.kyori.adventure.text.Component")
+                    "serialize", Class.forName("net.kyori.adventure.text.Component")
                 )
                 serializeMini.invoke(mini, component) as String
             } else {
@@ -153,6 +149,5 @@ object FrameColor {
             text.replaceLegacyToMini()
         }
     }
-
 
 }
