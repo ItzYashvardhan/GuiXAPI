@@ -10,22 +10,16 @@ import com.google.common.primitives.Ints
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
 import org.bukkit.Bukkit
-import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.profile.PlayerProfile
-import java.lang.reflect.Field
-import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 object SkullUtils {
-
-    val playerHead = ItemStack(Material.PLAYER_HEAD)
 
     object VersionHelper {
         const val V1_18_1: Int = 1181
@@ -48,10 +42,9 @@ object SkullUtils {
                 else stringBuilder.append(patch.replace(".", ""))
             }
 
-            val version = Ints.tryParse(stringBuilder.toString())
-
             // Should never fail
-            if (version == null) throw RuntimeException("Could not retrieve server version!")
+            val version = Ints.tryParse(stringBuilder.toString()) ?: throw RuntimeException("Could not retrieve server version!")
+
 
             return version
         }
@@ -59,64 +52,6 @@ object SkullUtils {
     }
 
     private val GSON = Gson()
-
-    /**
-     * Helper method to get the encoded bytes for a full MC Texture
-     *
-     * @param url the url of the texture
-     * @return fully encoded texture url
-     */
-    fun getEncoded(url: String): String {
-        val encodedData: ByteArray = Base64.getEncoder().encode(String.format("{textures:{SKIN:{url:\"%s\"}}}", "https://textures.minecraft.net/texture/$url").toByteArray())
-        return String(encodedData)
-    }
-
-    /**
-     * Get the skull from a base64 encoded texture url
-     *
-     * @param base64Url base64 encoded url to use
-     * @return skull
-     */
-    fun getSkullByBase64EncodedTextureUrl(base64Url: String): ItemStack {
-        val head: ItemStack = getHead()
-        if (base64Url.isEmpty()) {
-            return head
-        }
-
-        val headMeta = head.itemMeta as SkullMeta?
-        if (headMeta == null) {
-            return head
-        }
-
-        if (VersionHelper.HAS_PLAYER_PROFILES) {
-            val profile = getPlayerProfile(base64Url)
-            headMeta.ownerProfile = profile
-            head.itemMeta = headMeta
-            return head
-        }
-
-        val profile = getGameProfile(base64Url)
-        val profileField: Field
-        try {
-            profileField = headMeta.javaClass.getDeclaredField("profile")
-            profileField.setAccessible(true)
-            profileField.set(headMeta, profile)
-        } catch (_: NoSuchFieldException) {
-            println(
-                "Failed to get head item from base64 texture url"
-            )
-        } catch (_: IllegalArgumentException) {
-            println(
-                "Failed to get head item from base64 texture url"
-            )
-        } catch (_: IllegalAccessException) {
-            println(
-                "Failed to get head item from base64 texture url"
-            )
-        }
-        head.itemMeta = headMeta
-        return head
-    }
 
     fun getTextureFromSkull(item: ItemStack): String? {
         val meta = item.itemMeta as? SkullMeta ?: return null
@@ -140,57 +75,6 @@ object SkullUtils {
 
         val property = profile.properties.get("textures").firstOrNull() ?: return null
         return decodeSkinUrl(property.value)
-    }
-
-
-    /**
-     * Get the skull from a player name
-     *
-     * @param playerName the player name to use
-     * @return skull
-     */
-    fun getSkullByName(playerName: String): ItemStack {
-        val head: ItemStack = getHead().clone()
-        if (playerName.isEmpty()) {
-            return head
-        }
-
-        val headMeta = head.itemMeta as SkullMeta?
-        if (headMeta == null) {
-            return head
-        }
-
-        val offlinePlayer = Bukkit.getOfflinePlayer(playerName)
-
-        if (VersionHelper.HAS_PLAYER_PROFILES && offlinePlayer.playerProfile.textures.isEmpty) {
-            // updates the Player Profile and populates textures for offline players - for some reason this doesn't populate when getting the Profile first time
-            headMeta.ownerProfile = offlinePlayer.playerProfile.update().join()
-        } else if (!VersionHelper.IS_SKULL_OWNER_LEGACY) {
-            headMeta.owningPlayer = offlinePlayer
-        } else {
-            headMeta.owner = offlinePlayer.name
-        }
-
-        head.itemMeta = headMeta
-        return head
-    }
-
-    fun getSkullOwner(skull: ItemStack?): String? {
-        if (skull == null || skull.itemMeta !is SkullMeta) return null
-        val meta = skull.itemMeta as SkullMeta?
-
-        if (!VersionHelper.IS_SKULL_OWNER_LEGACY) {
-            if (meta!!.owningPlayer == null) return null
-            return meta.owningPlayer!!.name
-        }
-
-        return meta?.owner
-    }
-
-    private fun getGameProfile(base64Url: String): GameProfile {
-        val profile = GameProfile(UUID.randomUUID(), "")
-        profile.properties.put("textures", Property("textures", base64Url))
-        return profile
     }
 
     /**
@@ -228,10 +112,6 @@ object SkullUtils {
         return profile
     }
 
-    private fun getPlayerProfile(texture: String): PlayerProfile {
-        return createProfileFromTexture(texture)
-    }
-
     /**
      * Decode a base64 string and extract the url of the skin. Example:
      * <br></br>
@@ -265,9 +145,5 @@ object SkullUtils {
         } catch (e: Exception) { // Catches IllegalArgumentException (invalid base64) and JsonParseException
             null
         }
-    }
-
-    fun getHead(): ItemStack {
-        return playerHead
     }
 }
