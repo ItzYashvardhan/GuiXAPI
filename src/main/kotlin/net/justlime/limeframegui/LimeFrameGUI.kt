@@ -11,7 +11,7 @@ class LimeFrameGUI : JavaPlugin() {
     override fun onEnable() {
         this.saveDefaultConfig()
         CommandManager(this)
-        LimeFrameAPI.init(this, ColorType.LEGACY)
+        LimeFrameAPI.init(this, ColorType.MINI_MESSAGE)
         LimeFrameAPI.debugging = false
     }
 

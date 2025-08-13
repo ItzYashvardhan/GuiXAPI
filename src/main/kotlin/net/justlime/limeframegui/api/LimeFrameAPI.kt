@@ -1,7 +1,6 @@
 package net.justlime.limeframegui.api
 
 import net.justlime.limeframegui.color.FrameColor
-import net.justlime.limeframegui.color.KyoriMiniMessage
 import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.listener.InventoryListener
 import net.justlime.limeframegui.listener.PluginListener
@@ -18,11 +17,11 @@ object LimeFrameAPI {
     var debugging: Boolean = false
     var keys: FrameConfigKeys = FrameConfigKeys()
 
-    fun init(plugin: JavaPlugin, colorType: ColorType) {
+    fun init(plugin: JavaPlugin, colorType: ColorType = ColorType.LEGACY) {
         this.plugin = plugin
         Bukkit.getPluginManager().registerEvents(InventoryListener(plugin), plugin)
 
-        FrameColor.colorType = colorType
+        FrameColor.setColorType(colorType)
         if (colorType == ColorType.MINI_MESSAGE) FrameColor.initMiniMessage()
 
         //run a task on plugin disable

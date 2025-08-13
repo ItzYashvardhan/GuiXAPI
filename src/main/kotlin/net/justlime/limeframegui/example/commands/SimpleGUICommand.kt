@@ -182,7 +182,6 @@ class SimpleGUICommand() : CommandHandler {
     }
 
     fun savePage(player: Player) {
-        FrameColor.colorType = ColorType.LEGACY
 
         val config = ConfigHandler("config.yml")
         val setting = config.loadInventorySetting("inventory")
@@ -244,7 +243,6 @@ class SimpleGUICommand() : CommandHandler {
 
     fun formattedPage(player: Player) {
 
-        FrameColor.colorType = ColorType.LEGACY
 
         ChestGUI(6, "Formatted Page Example") {
 

@@ -10,12 +10,17 @@ import org.bukkit.entity.Player
 
 object FrameColor {
     var miniMessage: IMiniMessage? = null
-    var colorType: ColorType = ColorType.LEGACY
+    private lateinit var colorType: ColorType
+
+    fun setColorType(color: ColorType){
+        colorType = color
+    }
 
     fun initMiniMessage() {
         val mini = KyoriMiniMessage()
         try {
             miniMessage = mini
+            println("Initialized Mini Message")
         } catch (e: Exception) {
             Bukkit.getLogger().warning(e.message)
         }
@@ -41,19 +46,20 @@ object FrameColor {
             }
         }
 
-        newText = newText.toSmallCaps(smallCaps)
 
-        return when (colorType) {
+       val text = when (colorType) {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
             ColorType.MINI_MESSAGE -> {
                 newText = newText.replaceLegacyToMini()
                 try {
                     miniMessage?.legacyToMini(newText) ?: newText
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    println(e.message)
                     newText
                 }
             }
         }
+        return text.toSmallCaps(smallCaps)
     }
 
     fun applyColor(text: List<String>, player: Player? = null, offlinePlayer: OfflinePlayer? = null, smallCaps: Boolean? = false, customPlaceholders: Map<String, String>? = null): List<String> {
