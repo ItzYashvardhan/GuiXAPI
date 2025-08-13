@@ -131,10 +131,15 @@ data class GuiItem(
         // Name & lore
         if (hideToolTip) {
             try {
-                meta.isHideTooltip = true
-            } catch (_: Exception) {
+                val method = meta.javaClass.getMethod("setHideTooltip", Boolean::class.javaPrimitiveType)
+                method.invoke(meta, true)
+            } catch (_: NoSuchMethodException) {
+                //Ignore
+            } catch (_: Throwable) {
+                //Ignore
             }
         }
+
         meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder) })
         if (lore.isNotEmpty()) {
             meta.lore = try {
@@ -152,7 +157,7 @@ data class GuiItem(
                 meta.addEnchant(Enchantment.UNBREAKING, 1, true)
                 try {
                     meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
-                }catch (_: Throwable) {
+                } catch (_: Throwable) {
                     null
                 }
             }
