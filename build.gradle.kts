@@ -33,8 +33,8 @@ dependencies {
     compileOnly(libs.kotlin)
     compileOnly(libs.kotlin.reflection)
     compileOnly(libs.annotation)
-    implementation(libs.adventure.text.minimessage)
-    implementation(libs.adventure.text.serializer.legacy)
+    compileOnly(libs.adventure.text.minimessage)
+    compileOnly(libs.adventure.text.serializer.legacy)
     compileOnly(libs.papi)
 
 }
