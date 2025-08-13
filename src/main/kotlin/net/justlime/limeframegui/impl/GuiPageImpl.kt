@@ -45,6 +45,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
             trackAddItemSlot[slot] =item to onClick
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = { event ->
                 event.item = item
+                item.onClick(event)
                 onClick(event)
             }
             return slot
@@ -126,6 +127,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
             inventory.setItem(index, item)
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = { event ->
                 event.item = item
+                item.onClick(event)
                 onClick(event)
             }
 

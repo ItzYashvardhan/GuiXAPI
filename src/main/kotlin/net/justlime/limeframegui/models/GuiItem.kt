@@ -37,11 +37,12 @@ import org.bukkit.inventory.meta.SkullMeta
  * @param placeholderOfflinePlayer OfflinePlayer object used for applying placeholders in displayName and lore.
  * @param smallCapsName Whether to apply small caps formatting to the display name.
  * @param smallCapsLore Whether to apply small caps formatting to the lore.
- * @param onClickBlock Event callback invoked when this item is clicked in the GUI (TODO).
+ * @param onClick Event callback invoked when this item is clicked in the GUI (TODO).
  */
 data class GuiItem(
+
     // Appearance
-    var material: Material,
+    var material: Material = Material.AIR,
     var name: String? = "",
     var amount: Int = 1,
     var lore: List<String> = mutableListOf(),
@@ -68,8 +69,11 @@ data class GuiItem(
     var smallCapsName: Boolean? = null,
     var smallCapsLore: Boolean? = null,
 
+    //base ItemStack
+    var itemStack: ItemStack? = null,
+
     // Click Handling
-    var onClickBlock: (InventoryClickEvent) -> Unit = {}, //TODO
+    var onClick: (InventoryClickEvent) -> Unit = {}, //TODO
 ) {
 
     companion object {
@@ -79,64 +83,52 @@ data class GuiItem(
     }
 
     fun toItemStack(): ItemStack {
-        val item = if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !texture.isNullOrEmpty()) {
+        val item = this.itemStack?.clone()?.apply {
+            if (this@GuiItem.amount != 1 || this.amount <= 0) {
+                this.amount = this@GuiItem.amount
+            }
+        } ?: if (material.name.contains("PLAYER_HEAD", ignoreCase = true) && !texture.isNullOrEmpty()) {
             ItemStack(Material.PLAYER_HEAD, amount)
         } else {
+            // If no items tack is provided, ensure material is not AIR (unless intended)
+            if (material == Material.AIR && name.isNullOrEmpty() && lore.isEmpty()) {
+                return ItemStack(Material.AIR)
+            }
             ItemStack(material, amount)
         }
+
 
         val meta = item.itemMeta ?: return item
 
         // Apply skull texture
-        // Apply skull texture
         if (meta is SkullMeta && !texture.isNullOrEmpty()) {
-            // --- Player Placeholder Logic ---
-            // Check if the texture value is a placeholder for the player's own head.
             if (texture.equals("{player}", ignoreCase = true)) {
-
-                // Prioritize the online player for the most accurate and up-to-date skin profile.
                 if (placeholderPlayer != null) {
-                    // For modern versions (1.18+), setting the playerProfile directly is the best method.
-                    // This works reliably for online players.
                     meta.ownerProfile = placeholderPlayer!!.playerProfile
-                }
-                // Fallback to the OfflinePlayer if the online player isn't available.
-                else if (placeholderOfflinePlayer != null) {
-                    // setOwningPlayer is the universal method for both premium and cracked servers.
+                } else if (placeholderOfflinePlayer != null) {
                     meta.owningPlayer = placeholderOfflinePlayer
                 }
-
-            }
-            // --- Custom Base64 Texture Logic ---
-            // If it's not a placeholder, treat it as a custom texture value.
-            else {
+            } else {
                 try {
-                    // Primary method: Set the owner profile directly. This is the modern standard.
                     meta.ownerProfile = SkullProfileCache.getProfile(texture!!)
                 } catch (_: Throwable) {
-                    // Fallback method: Use reflection for older/problematic server versions.
-                    // This provides broader compatibility by accessing the internal "profile" field.
                     try {
                         val profileField = meta.javaClass.getDeclaredField("profile")
                         profileField.isAccessible = true
                         profileField.set(meta, SkullProfileCache.getProfile(texture!!))
-                    } catch (e: Throwable) {
-                        // If both methods fail, the texture cannot be applied.
-                        // You could add an error log here if desired.
+                    } catch (_: Throwable) {
+                        // Texture application failed
                     }
                 }
             }
         }
-
         // Name & lore
         if (hideToolTip) {
             try {
                 val method = meta.javaClass.getMethod("setHideTooltip", Boolean::class.javaPrimitiveType)
                 method.invoke(meta, true)
-            } catch (_: NoSuchMethodException) {
-                //Ignore
             } catch (_: Throwable) {
-                //Ignore
+                // Ignore
             }
         }
 
@@ -158,7 +150,7 @@ data class GuiItem(
                 try {
                     meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
                 } catch (_: Throwable) {
-                    null
+                    // Ignore
                 }
             }
         }
@@ -167,9 +159,8 @@ data class GuiItem(
         if (flags.isNotEmpty()) {
             try {
                 meta.addItemFlags(*flags.toTypedArray())
-
             } catch (_: Throwable) {
-
+                // Ignore
             }
         }
 
@@ -178,6 +169,7 @@ data class GuiItem(
             try {
                 meta.setCustomModelData(it)
             } catch (_: Throwable) {
+                // Ignore
             }
         }
 
@@ -190,6 +182,7 @@ data class GuiItem(
         try {
             meta.isUnbreakable = unbreakable
         } catch (_: Throwable) {
+            // Ignore
         }
 
         // Damage (durability)
@@ -198,6 +191,7 @@ data class GuiItem(
                 try {
                     meta.damage = it
                 } catch (_: Throwable) {
+                    // Ignore
                 }
             }
         }
@@ -207,6 +201,7 @@ data class GuiItem(
             try {
                 meta.attributeModifiers = it
             } catch (_: Throwable) {
+                // Ignore
             }
         }
 
