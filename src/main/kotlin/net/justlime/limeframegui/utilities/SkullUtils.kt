@@ -119,42 +119,29 @@ object SkullUtils {
     }
 
     fun getTextureFromSkull(item: ItemStack): String? {
-        if (item.itemMeta !is SkullMeta) return null
-        val meta = item.itemMeta as SkullMeta?
+        val meta = item.itemMeta as? SkullMeta ?: return null
 
+        // Modern versions (1.18+)
         if (VersionHelper.HAS_PLAYER_PROFILES) {
-            val profile = meta!!.ownerProfile
-            if (profile == null) return null
-
-            val url: URL? = profile.textures.skin
-            if (url == null) return null
-
+            val profile = meta.ownerProfile ?: return null
+            val url = profile.textures.skin ?: return null
             return url.toString().removePrefix("https://textures.minecraft.net/texture/")
         }
 
-        val profile: GameProfile
-        try {
-            val profileField: Field = meta!!.javaClass.getDeclaredField("profile")
-            profileField.setAccessible(true)
-            profile = profileField.get(meta) as GameProfile
-        } catch (e: NoSuchFieldException) {
-            e.printStackTrace()
-            return null
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-            return null
-        } catch (e: IllegalAccessException) {
-            e.printStackTrace()
-            return null
-        }
+        // Legacy versions (1.8–1.17)
+        val profile = try {
+            val profileField = meta.javaClass.getDeclaredField("profile")
+            profileField.isAccessible = true
+            profileField.get(meta) as? GameProfile
+        } catch (e: Exception) {
+            println(e.message)
+            null
+        } ?: return null
 
-        for (property in profile.properties.get("textures")) {
-            if (property.name.equals("textures")) {
-                return decodeSkinUrl(property.value)
-            }
-        }
-        return null
+        val property = profile.properties.get("textures").firstOrNull() ?: return null
+        return decodeSkinUrl(property.value)
     }
+
 
     /**
      * Get the skull from a player name
