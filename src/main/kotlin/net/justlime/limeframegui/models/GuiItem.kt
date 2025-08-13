@@ -73,7 +73,7 @@ data class GuiItem(
     var itemStack: ItemStack? = null,
 
     // Click Handling
-    var onClick: (InventoryClickEvent) -> Unit = {}, //TODO
+    var onClick: (InventoryClickEvent) -> Unit = {}
 ) {
 
     companion object {
