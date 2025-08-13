@@ -3,6 +3,7 @@ package net.justlime.limeframegui.models
 import com.google.common.collect.Multimap
 import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
+import net.justlime.limeframegui.utilities.SkullUtils
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
 import org.bukkit.attribute.Attribute
@@ -97,31 +98,29 @@ data class GuiItem(
             ItemStack(material, amount)
         }
 
-
         val meta = item.itemMeta ?: return item
 
-        // Apply skull texture
+        //Skull Texture
         if (meta is SkullMeta && !texture.isNullOrEmpty()) {
             if (texture.equals("{player}", ignoreCase = true)) {
+
                 if (placeholderPlayer != null) {
-                    meta.ownerProfile = placeholderPlayer!!.playerProfile
+                    if (SkullUtils.VersionHelper.HAS_PLAYER_PROFILES) {
+                        // Modern Way (1.18+)
+                        meta.ownerProfile = placeholderPlayer!!.playerProfile
+                    } else {
+                        // Legacy Way (pre-1.18)
+                        meta.owningPlayer = placeholderPlayer
+                    }
                 } else if (placeholderOfflinePlayer != null) {
                     meta.owningPlayer = placeholderOfflinePlayer
                 }
+
             } else {
-                try {
-                    meta.ownerProfile = SkullProfileCache.getProfile(texture!!)
-                } catch (_: Throwable) {
-                    try {
-                        val profileField = meta.javaClass.getDeclaredField("profile")
-                        profileField.isAccessible = true
-                        profileField.set(meta, SkullProfileCache.getProfile(texture!!))
-                    } catch (_: Throwable) {
-                        // Texture application failed
-                    }
-                }
+                SkullUtils.applySkin(meta, SkullProfileCache.getProfile(texture!!))
             }
         }
+
         // Name & lore
         if (hideToolTip) {
             try {

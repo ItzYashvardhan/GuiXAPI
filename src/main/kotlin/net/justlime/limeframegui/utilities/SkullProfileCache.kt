@@ -1,21 +1,27 @@
 package net.justlime.limeframegui.utilities
 
+import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.profile.PlayerProfile
 
 object SkullProfileCache {
-    private val cache = mutableMapOf<String, PlayerProfile>()
+    // The cache stores either a PlayerProfile or a GameProfile, so we use 'Any'.
+    private val cache = mutableMapOf<String, Any>()
 
     /**
-     * Retrieves a PlayerProfile from the cache or creates it if it doesn't exist.
-     * This function safely handles various texture formats (raw ID, full URL, Base64)
-     * by delegating the creation logic to SkullUtils.
+     * Retrieves a profile object from the cache or creates a new one.
      *
      * @param texture The texture identifier.
-     * @return A cached or newly created PlayerProfile.
+     * @return The cached or newly created profile object (PlayerProfile on 1.18+, GameProfile on older versions).
      */
-    fun getProfile(texture: String): PlayerProfile {
+    fun getProfile(texture: String): Any {
+        // The getOrPut lambda now correctly returns the profile object to be cached.
         return cache.getOrPut(texture) {
-            SkullUtils.createProfileFromTexture(texture)
+            // Check the server version and create the correct type of profile.
+            if (SkullUtils.VersionHelper.HAS_PLAYER_PROFILES) {
+                SkullUtils.createProfileFromTexture(texture)
+            } else {
+                SkullUtils.createLegacyGameProfile(texture)
+            }
         }
     }
 }

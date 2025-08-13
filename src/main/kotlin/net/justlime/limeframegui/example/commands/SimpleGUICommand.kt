@@ -281,6 +281,8 @@ class SimpleGUICommand() : CommandHandler {
                 ), smallCapsName = false
             )
 
+            val item5 = GuiItem(Material.PLAYER_HEAD, texture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWQzMDhhZTI3YjU4YjY5NjQ1NDk3ZjlkYTg2NTk3ZWRhOTQ3ZWFjZDEwYzI5ZTNkNGJiZjNiYzc2Y2ViMWVhYiJ9fX0=")
+
             addItem(item1) {
                 it.whoClicked.sendMessage("Clicked formatted item!")
             }
@@ -301,6 +303,8 @@ class SimpleGUICommand() : CommandHandler {
             }
 
             addItem(item4)
+            addItem(item5)
+
         }.open(player)
 
     }
