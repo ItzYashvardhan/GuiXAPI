@@ -1,4 +1,4 @@
-package net.justlime.limeframegui.utilities
+package net.justlime.limeframegui.color
 
 import me.clip.placeholderapi.PlaceholderAPI
 import net.justlime.limeframegui.api.LimeFrameAPI
@@ -9,25 +9,18 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 object FrameColor {
-    var legacy: Any? = try {
-        // Reflection to avoid class resolution on load
-        val clazz = Class.forName("net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer")
-        val method = clazz.getMethod("legacySection")
-        method.invoke(null) // static call
-    } catch (_: Throwable) {
-        null
-    }
-
+    var miniMessage: IMiniMessage? = null
     var colorType: ColorType = ColorType.LEGACY
 
-    private val mini: Any? by lazy {
+    fun initMiniMessage() {
+        val mini = KyoriMiniMessage()
         try {
-            val clazz = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage")
-            clazz.getMethod("miniMessage").invoke(null)
-        } catch (_: ClassNotFoundException) {
-            null // MiniMessage not available on this server
+            miniMessage = mini
+        } catch (e: Exception) {
+            Bukkit.getLogger().warning(e.message)
         }
     }
+
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
 
     /**
@@ -55,7 +48,7 @@ object FrameColor {
             ColorType.MINI_MESSAGE -> {
                 newText = newText.replaceLegacyToMini()
                 try {
-                    fromLegacyMini(newText)
+                    miniMessage?.legacyToMini(newText) ?: newText
                 } catch (_: Exception) {
                     newText
                 }
@@ -124,30 +117,6 @@ object FrameColor {
         }
 
         return result.toString()
-    }
-
-    private fun fromLegacyMini(text: String): String {
-        return try {
-            // If legacy serializer and MiniMessage are available
-            if (legacy != null && mini != null) {
-                val deserializeLegacy = legacy!!::class.java.getMethod(
-                    "deserialize", String::class.java
-                )
-                val component = deserializeLegacy.invoke(legacy, text)
-
-                val miniMessageClass = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage")
-                val serializeMini = miniMessageClass.getMethod(
-                    "serialize", Class.forName("net.kyori.adventure.text.Component")
-                )
-                serializeMini.invoke(mini, component) as String
-            } else {
-                // Fallback to manual replacement
-                text.replaceLegacyToMini()
-            }
-        } catch (_: Throwable) {
-            // On error, use manual fallback
-            text.replaceLegacyToMini()
-        }
     }
 
 }

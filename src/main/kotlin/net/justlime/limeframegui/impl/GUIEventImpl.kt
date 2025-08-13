@@ -3,7 +3,7 @@ package net.justlime.limeframegui.impl
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.type.ChestGUI
-import net.justlime.limeframegui.utilities.FrameColor
+import net.justlime.limeframegui.color.FrameColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent

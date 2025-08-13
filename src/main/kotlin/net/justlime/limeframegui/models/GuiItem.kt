@@ -1,7 +1,7 @@
 package net.justlime.limeframegui.models
 
 import com.google.common.collect.Multimap
-import net.justlime.limeframegui.utilities.FrameColor
+import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer

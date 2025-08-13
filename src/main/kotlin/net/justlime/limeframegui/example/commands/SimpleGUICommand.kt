@@ -6,7 +6,7 @@ import net.justlime.limeframegui.impl.ConfigHandler
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
-import net.justlime.limeframegui.utilities.FrameColor
+import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.item
 import net.justlime.limeframegui.utilities.setItem
 import net.justlime.limeframegui.utilities.toGuiItem

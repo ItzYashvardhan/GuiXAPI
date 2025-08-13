@@ -1,6 +1,7 @@
 package net.justlime.limeframegui
 
 import net.justlime.limeframegui.api.LimeFrameAPI
+import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.example.commands.CommandManager
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -10,7 +11,7 @@ class LimeFrameGUI : JavaPlugin() {
     override fun onEnable() {
         this.saveDefaultConfig()
         CommandManager(this)
-        LimeFrameAPI.init(this)
+        LimeFrameAPI.init(this, ColorType.LEGACY)
         LimeFrameAPI.debugging = false
     }
 
