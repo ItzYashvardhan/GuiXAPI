@@ -6,7 +6,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
-import java.util.WeakHashMap
+import java.util.*
 
 // Temporary storage for attaching a GuiItem to an InventoryClickEvent.
 private val clickEventItems = WeakHashMap<InventoryClickEvent, GuiItem?>()
@@ -19,7 +19,7 @@ private val clickEventItems = WeakHashMap<InventoryClickEvent, GuiItem?>()
  * custom model data, and skull textures for player heads.
  *
  * @return A [GuiItem] representation of the [ItemStack].
-*/
+ */
 fun ItemStack.toGuiItem(): GuiItem {
     val meta = this.itemMeta
 
@@ -36,8 +36,7 @@ fun ItemStack.toGuiItem(): GuiItem {
         meta?.hasEnchants() == true // 1.8.8 fallback
     }
 
-    val flags = meta?.itemFlags
-        ?.map { it} // store as string for compatibility
+    val flags = meta?.itemFlags?.map { it } // store as string for compatibility
         ?: emptyList()
 
     val customModelData = try {
@@ -63,9 +62,13 @@ fun ItemStack.toGuiItem(): GuiItem {
     }
 
     // Damage
-    val damage = if (meta is Damageable) {
-        try { meta.damage } catch (_: Throwable) { null }
-    } else null
+    val damage = try {
+        if (meta is Damageable) {
+            meta.damage
+        } else null
+    } catch (_: Throwable) {
+        null
+    }
 
     // Hide tooltip
     val hideToolTip = try {
@@ -218,7 +221,6 @@ fun Pair<Int, Int>.toSlot(totalRows: Int = 6): Int {
 
     return (row - 1) * 9 + (col - 1)
 }
-
 
 /**
  * The GuiItem associated with this click event.

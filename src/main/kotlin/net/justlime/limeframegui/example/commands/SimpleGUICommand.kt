@@ -47,7 +47,7 @@ class SimpleGUICommand() : CommandHandler {
                 nestedPage(sender)
             }
 
-            "formatted" ->{
+            "formatted" -> {
                 formattedPage(sender)
             }
 
@@ -55,7 +55,6 @@ class SimpleGUICommand() : CommandHandler {
         }
         return true
     }
-
 
     override fun onTabComplete(
         sender: CommandSender, command: Command, label: String, args: Array<out String?>
@@ -87,17 +86,15 @@ class SimpleGUICommand() : CommandHandler {
 //                this.prevSlot = 51
             }
 
-
             //Global Click handler
             onClick { it.isCancelled = true }
 
             //This item added to every page
             //You can used it as Custom Background Design
             item4.slot = 5
-            setItem(item4){
+            setItem(item4) {
                 it.whoClicked.sendMessage("You click on global item")
             }
-
 
 //            addPage(id = 2, title = "Kebab Mai Hadi"){
 //                item4.slotList = (11..20).toList()
@@ -163,6 +160,11 @@ class SimpleGUICommand() : CommandHandler {
     fun homePage(player: Player) {
 
         ChestGUI(1, "Home Page") {
+
+            onClose {
+                it.player.sendMessage("Closing Inventory")
+            }
+
             val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { name = "Open Simple GUI" }
 
             addItem(simpleItem) {
@@ -180,7 +182,7 @@ class SimpleGUICommand() : CommandHandler {
     }
 
     fun savePage(player: Player) {
-        FrameColor.colorType = ColorType.MINI_MESSAGE
+        FrameColor.colorType = ColorType.LEGACY
 
         val config = ConfigHandler("config.yml")
         val setting = config.loadInventorySetting("inventory")
@@ -201,7 +203,7 @@ class SimpleGUICommand() : CommandHandler {
 
     fun nestedPage(player: Player) {
 
-        //Useful if you gui can various different page
+        //Useful if you gui can have various different page (Great for Tree Like Structure)
         //Don't use nav{} //It will give unexpected behaviour
 
         ChestGUI(6, "Nested GUI") {
@@ -242,7 +244,7 @@ class SimpleGUICommand() : CommandHandler {
 
     fun formattedPage(player: Player) {
 
-        FrameColor.colorType = ColorType.MINI_MESSAGE
+        FrameColor.colorType = ColorType.LEGACY
 
         ChestGUI(6, "Formatted Page Example") {
 
@@ -254,49 +256,31 @@ class SimpleGUICommand() : CommandHandler {
             onClick { it.isCancelled = true }
 
             val item1 = GuiItem(
-                Material.PAPER,
-                name = "<gradient:red:blue>This is a Gradient title</gradient>",
-                lore = listOf(
-                    "<red>This is a red line</red>",
-                    "<green>This is a green line</green>",
-                    "<blue>This is a blue line</blue>"
+                Material.PAPER, name = "<gradient:red:blue>This is a Gradient title</gradient>", lore = listOf(
+                    "<red>This is a red line</red>", "<green>This is a green line</green>", "<blue>This is a blue line</blue>"
                 )
             )
 
             val item2 = GuiItem(
-                material = Material.GOLD_INGOT,
-                name = "Player: %player_name%",
-                lore = listOf(
-                    "<gold>Balance: %vault_eco_balance%",
-                    "<white>Location: %player_x%, %player_y%, %player_z%"
-                ),
-                smallCapsName = false, //You can turn On/Off certain small caps for particular item
+                material = Material.GOLD_INGOT, name = "Player: %player_name%", lore = listOf(
+                    "<gold>Balance: %vault_eco_balance%", "<white>Location: %player_x%, %player_y%, %player_z%"
+                ), smallCapsName = false, //You can turn On/Off certain small caps for particular item
                 smallCapsLore = false
             )
 
-            val item3 = GuiItem (
-                material = Material.PLAYER_HEAD,
-                name = "Player: {player}",
-                lore = listOf(
-                    "<green>Playtime Stats: %statistic_time_played%",
-                    "<aqua>Click to refresh"
-                ),
-                texture = "{player}"
+            val item3 = GuiItem(
+                material = Material.PLAYER_HEAD, name = "Player: {player}", lore = listOf(
+                    "<green>Playtime Stats: %statistic_time_played%", "<aqua>Click to refresh"
+                ), texture = "{player}"
             )
 
             val item4 = GuiItem(
-                material = Material.TOTEM_OF_UNDYING,
-                name = "<#FF00FF>Custom PlaceHolder</#FF00FF>",
-                lore = listOf(
-                    "<gray>World: {world}</gray>",
-                    "<gray>Location: {location}</gray>"
+                material = Material.TOTEM_OF_UNDYING, name = "<#FF00FF>Custom PlaceHolder</#FF00FF>", lore = listOf(
+                    "<gray>World: {world}</gray>", "<gray>Location: {location}</gray>"
 
-                ),
-                customPlaceholder = mapOf(
-                    "{world}" to player.world.name,
-                    "{location}" to "${player.location.x.toInt()}, ${player.location.y.toInt()}, ${player.location.z.toInt()}"
-                ),
-                smallCapsName = false
+                ), customPlaceholder = mapOf(
+                    "{world}" to player.world.name, "{location}" to "${player.location.x.toInt()}, ${player.location.y.toInt()}, ${player.location.z.toInt()}"
+                ), smallCapsName = false
             )
 
             addItem(item1) {
@@ -307,21 +291,20 @@ class SimpleGUICommand() : CommandHandler {
                 it.whoClicked.sendMessage("Clicked player placeholder item!")
             }
 
-            addItem(item3) {event ->
+            addItem(item3) { event ->
                 println(event.item?.name)
                 println(event.currentItem?.itemMeta?.displayName)
-                event.inventory.setItem(event.slot,event.item)
+                event.inventory.setItem(event.slot, event.item)
             }
 
-            addItem(item3) {event ->
+            addItem(item3) { event ->
                 println(item3.name)
-                event.inventory.setItem(event.slot,item3) //This may break things not recommended
+                event.inventory.setItem(event.slot, item3) //This may break things not recommended
             }
 
             addItem(item4)
         }.open(player)
 
     }
-
 
 }

@@ -150,7 +150,11 @@ data class GuiItem(
         } catch (_: Throwable) {
             if (glow) {
                 meta.addEnchant(Enchantment.UNBREAKING, 1, true)
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
+                try {
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
+                }catch (_: Throwable) {
+                    null
+                }
             }
         }
 

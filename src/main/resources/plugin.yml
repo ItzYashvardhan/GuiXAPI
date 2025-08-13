@@ -1,13 +1,14 @@
 name: LimeFrameGUI
 version: '1.0.0'
 main: net.justlime.limeframegui.LimeFrameGUI
-api-version: '1.21'
+api-version: '1.13'
 load: STARTUP
 authors: [ItzJustLime]
 description: Easy  Manager API for GUI
 website: https://discord.gg/rVsUJ4keZN
 softdepend:
   - PlaceholderAPI
+  - Kotlin
 
 
 commands:

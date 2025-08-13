@@ -1,6 +1,5 @@
 package net.justlime.limeframegui.impl
 
-import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.type.ChestGUI
@@ -77,8 +76,7 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
         val size = setting.rows * 9
         val title = setting.title.replace("{page}", id.toString())
 
-
-        val coloredTitle = FrameColor.applyColor(title,setting.placeholderPlayer,setting.placeholderOfflinePlayer,setting.smallCapsTitle, setting.customPlaceholder)
+        val coloredTitle = FrameColor.applyColor(title, setting.placeholderPlayer, setting.placeholderOfflinePlayer, setting.smallCapsTitle, setting.customPlaceholder)
 
         val inv = Bukkit.createInventory(this, size, coloredTitle)
         pageInventories[id] = inv
@@ -144,7 +142,7 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         // Clean up the player's page tracking to prevent memory leaks.
         Bukkit.getScheduler().runTask(plugin, Runnable {
-            val openInventory = player.openInventory.topInventory
+            val openInventory = getTopInventorySafe(player)
             if (!pageInventories.containsValue(openInventory)) {
                 globalCloseHandler?.invoke(event)
                 currentPages.remove(player.name)
@@ -153,4 +151,25 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
         })
 
     }
+
+    //Reflection Used here to support backward Compatibility
+    private fun getTopInventorySafe(player: Player): Inventory? {
+        return try {
+            //Get Open Inventory Method
+            val getOpenInvMethod = player.javaClass.getMethod("getOpenInventory")
+            val inventoryView = getOpenInvMethod.invoke(player)
+
+            val getTopInvMethod = inventoryView.javaClass.getDeclaredMethod("getTopInventory")
+
+            // bypass package-private restriction
+            getTopInvMethod.isAccessible = true
+
+            getTopInvMethod.invoke(inventoryView) as? Inventory
+        } catch (ex: Throwable) {
+            Bukkit.getLogger().warning("Failed to get top inventory: ${ex.message}")
+            null
+        }
+    }
+
+
 }

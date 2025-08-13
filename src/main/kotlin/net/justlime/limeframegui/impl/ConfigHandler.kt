@@ -42,7 +42,6 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         writeItemToSection(section, item)
     }
 
-
     fun saveItemBase64(path: String, itemStack: ItemStack): Boolean {
         val encodedItem = FrameConverter.serializeItemStack(itemStack)
         config.set(path, encodedItem)
@@ -132,8 +131,6 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         return inventory
     }
 
-
-
     fun loadInventorySetting(path: String): GUISetting {
         val section = config.getConfigurationSection(path) ?: return GUISetting(keys.defaultInventoryRows, keys.defaultInventoryTitle)
         val title = section.getString(keys.inventoryTitle, keys.defaultInventoryTitle) ?: keys.defaultInventoryTitle
@@ -176,7 +173,6 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         return save()
     }
 
-
     fun saveInventorySetting(path: String, setting: GUISetting): Boolean {
 
         val section = config.getConfigurationSection(path) ?: config.createSection(path)
@@ -207,7 +203,7 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         section.set(keys.material, item.material.name)
         section.set(keys.lore, item.lore)
         section.set(keys.glow, item.glow)
-        section.set(keys.flags, item.flags.mapNotNull { it?.name })
+        section.set(keys.flags, item.flags.map { it.name })
         section.set(keys.model, item.customModelData)
         section.set(keys.texture, item.texture)
         section.set(keys.amount, item.amount)

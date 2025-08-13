@@ -3,19 +3,33 @@ package net.justlime.limeframegui.utilities
 import me.clip.placeholderapi.PlaceholderAPI
 import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ColorType
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
 object FrameColor {
-    var legacy: LegacyComponentSerializer = LegacyComponentSerializer.legacySection()
+    val legacy: Any? by lazy {
+        try {
+            // Reflection to avoid class resolution on load
+            val clazz = Class.forName("net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer")
+            val method = clazz.getMethod("legacySection")
+            method.invoke(null) // static call
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
     var colorType: ColorType = ColorType.LEGACY
 
-    private val mini by lazy { MiniMessage.miniMessage() }
+    private val mini: Any? by lazy {
+        try {
+            val clazz = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage")
+            clazz.getMethod("miniMessage").invoke(null)
+        } catch (_: ClassNotFoundException) {
+            null // MiniMessage not available on this server
+        }
+    }
     private val isPlaceholderAPIEnabled = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
 
     /**
@@ -42,7 +56,11 @@ object FrameColor {
             ColorType.LEGACY -> ChatColor.translateAlternateColorCodes('&', newText)
             ColorType.MINI_MESSAGE -> {
                 newText = newText.replaceLegacyToMini()
-                toLegacyMini(newText)
+                try {
+                    fromLegacyMini(newText)
+                }catch (_: Exception){
+                    newText
+                }
             }
         }
     }
@@ -54,10 +72,9 @@ object FrameColor {
     private fun String.replaceLegacyToMini(): String {
         return this.replace("§0", "<black>").replace("§1", "<dark_blue>").replace("§2", "<dark_green>").replace("§3", "<dark_aqua>").replace("§4", "<dark_red>").replace("§5", "<dark_purple>").replace("§6", "<gold>").replace("§7", "<gray>")
             .replace("§8", "<dark_gray>").replace("§9", "<blue>").replace("§a", "<green>").replace("§b", "<aqua>").replace("§c", "<red>").replace("§d", "<light_purple>").replace("§e", "<yellow>").replace("§f", "<white>").replace("§l", "<bold>")
-            .replace("§m", "<strikethrough>").replace("§n", "<underlined>").replace("§o", "<italic>").replace("§r", "<reset>")
-            .replace("&0", "<black>").replace("&1", "<dark_blue>").replace("&2", "<dark_green>").replace("&3", "<dark_aqua>").replace("&4", "<dark_red>").replace("&5", "<dark_purple>").replace("&6", "<gold>").replace("&7", "<gray>")
-            .replace("&8", "<dark_gray>").replace("&9", "<blue>").replace("&a", "<green>").replace("&b", "<aqua>").replace("&c", "<red>").replace("&d", "<light_purple>").replace("&e", "<yellow>").replace("&f", "<white>").replace("&l", "<bold>")
-            .replace("&m", "<strikethrough>").replace("&n", "<underlined>").replace("&o", "<italic>").replace("&r", "<reset>")
+            .replace("§m", "<strikethrough>").replace("§n", "<underlined>").replace("§o", "<italic>").replace("§r", "<reset>").replace("&0", "<black>").replace("&1", "<dark_blue>").replace("&2", "<dark_green>").replace("&3", "<dark_aqua>")
+            .replace("&4", "<dark_red>").replace("&5", "<dark_purple>").replace("&6", "<gold>").replace("&7", "<gray>").replace("&8", "<dark_gray>").replace("&9", "<blue>").replace("&a", "<green>").replace("&b", "<aqua>").replace("&c", "<red>")
+            .replace("&d", "<light_purple>").replace("&e", "<yellow>").replace("&f", "<white>").replace("&l", "<bold>").replace("&m", "<strikethrough>").replace("&n", "<underlined>").replace("&o", "<italic>").replace("&r", "<reset>")
 
     }
 
@@ -111,14 +128,31 @@ object FrameColor {
         return result.toString()
     }
 
-    private fun toLegacyMini(text: String): String {
+    private fun fromLegacyMini(text: String): String {
         return try {
-            val component: Component = mini.deserialize(text)
-            val legacy = legacy.serialize(component.compact())
-            legacy
-        } catch (e: Exception) {
-            println(e.message)
-            ChatColor.translateAlternateColorCodes('&', text)
+            // If legacy serializer and MiniMessage are available
+            if (legacy != null && mini != null) {
+                val deserializeLegacy = legacy!!::class.java.getMethod(
+                    "deserialize",
+                    String::class.java
+                )
+                val component = deserializeLegacy.invoke(legacy, text)
+
+                val miniMessageClass = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage")
+                val serializeMini = miniMessageClass.getMethod(
+                    "serialize",
+                    Class.forName("net.kyori.adventure.text.Component")
+                )
+                serializeMini.invoke(mini, component) as String
+            } else {
+                // Fallback to manual replacement
+                text.replaceLegacyToMini()
+            }
+        } catch (_: Throwable) {
+            // On error, use manual fallback
+            text.replaceLegacyToMini()
         }
     }
+
+
 }

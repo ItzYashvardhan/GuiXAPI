@@ -1,3 +1,4 @@
+
 plugins {
     kotlin("jvm") version "2.1.0"
     id("com.gradleup.shadow") version "8.3.0"
@@ -66,7 +67,6 @@ publishing {
         }
 
     }
-    //use kotlin 2.1.0
 
 }
 
@@ -76,7 +76,7 @@ tasks.register<Copy>("shadowJarCopy") {
     description = "Copy shadowJar jar to local test server"
     dependsOn("shadowJar")
     from(tasks.shadowJar.get().outputs.files.singleFile)
-    into("E:/Minecraft/servers/PaperMC-1.21.4/plugins")
+    into("E:/Minecraft/servers/PaperMC-1.16.1/plugins")
 }
 
 
