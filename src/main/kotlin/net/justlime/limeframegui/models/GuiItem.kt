@@ -3,6 +3,7 @@ package net.justlime.limeframegui.models
 import com.google.common.collect.Multimap
 import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
+import org.bukkit.Bukkit
 import net.justlime.limeframegui.utilities.SkullUtils
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
@@ -15,6 +16,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
+import java.util.UUID
 
 /**
  * Represents an item in a LimeFrame GUI.
@@ -116,7 +118,22 @@ data class GuiItem(
                     meta.owningPlayer = placeholderOfflinePlayer
                 }
 
+            } else if (texture!!.startsWith("[") && texture!!.endsWith("]")) {
+                // It's a UUID, e.g., "[069a79f4-44e9-4726-a5be-fca90e38aaf5]"
+                try {
+                    val uuidString = texture!!.substring(1, texture!!.length - 1)
+                    val uuid = UUID.fromString(uuidString)
+                    val owner = Bukkit.getOfflinePlayer(uuid)
+                    if (SkullUtils.VersionHelper.HAS_PLAYER_PROFILES) {
+                        meta.ownerProfile = owner.playerProfile
+                    } else {
+                        meta.owningPlayer = owner
+                    }
+                } catch (_: IllegalArgumentException) {
+                    // Ignore if the UUID is malformed. The skull will be default.
+                }
             } else {
+                // Assume it's a Base64 texture value
                 SkullUtils.applySkin(meta, SkullProfileCache.getProfile(texture!!))
             }
         }

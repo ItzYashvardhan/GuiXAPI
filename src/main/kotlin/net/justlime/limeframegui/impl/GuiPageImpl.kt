@@ -31,21 +31,25 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
     override var trackAddItemSlot = mutableMapOf<Int, Pair<GuiItem, (InventoryClickEvent) -> Unit>>()
 
     override fun addItem(item: GuiItem, onClick: (InventoryClickEvent) -> Unit): Int {
+
+        //This way it can prevent item from overriding
+        val newItem = item.copy()
+
         fun findFreeSlot(inv: Inventory): Int = (0 until inv.size).firstOrNull { it !in getReservedSlots(inv) && inv.getItem(it) == null } ?: -1
 
         // Apply placeholders from setting if not set
-        if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
-        if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
-        if (item.smallCapsName == null) item.smallCapsName = setting.smallCapsItemName
-        if (item.smallCapsLore == null) item.smallCapsLore = setting.smallCapsItemLore
+        if (newItem.placeholderPlayer == null) newItem.placeholderPlayer = setting.placeholderPlayer
+        if (newItem.placeholderOfflinePlayer == null) newItem.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
+        if (newItem.smallCapsName == null) newItem.smallCapsName = setting.smallCapsItemName
+        if (newItem.smallCapsLore == null) newItem.smallCapsLore = setting.smallCapsItemLore
 
         // Try current page
         findFreeSlot(inventory).takeIf { it != -1 }?.let { slot ->
-            inventory.setItem(slot, item)
-            trackAddItemSlot[slot] =item to onClick
+            inventory.setItem(slot, newItem)
+            trackAddItemSlot[slot] =newItem to onClick
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[slot] = { event ->
-                event.item = item
-                item.onClick(event)
+                event.item = newItem
+                newItem.onClick(event)
                 onClick(event)
             }
             return slot
@@ -66,8 +70,8 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
         // Try next existing page if available
         handler.pageInventories[nextPageId]?.let { inv ->
             findFreeSlot(inv).takeIf { it != -1 }?.let { slot ->
-                inv.setItem(slot, item)
-                builder.pages[nextPageId]?.trackAddItemSlot[slot] = item to onClick
+                inv.setItem(slot, newItem)
+                builder.pages[nextPageId]?.trackAddItemSlot[slot] = newItem to onClick
 
                 handler.itemClickHandler.computeIfAbsent(nextPageId) { mutableMapOf() }[slot] = onClick
                 return slot
@@ -80,7 +84,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
         trackPageId = newPageId
         if (LimeFrameAPI.debugging) println("Creating NewPage $trackPageId")
         addPage(trackPageId, setting.rows, setting.title) {
-            newSlot = addItem(item, onClick)
+            newSlot = addItem(newItem, onClick)
         }
         return newSlot
     }
@@ -119,15 +123,18 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
     }
 
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)): Int {
+
+        val newItem = item.copy()
+
         if (index < inventory.size) {
-            if (item.placeholderPlayer == null) item.placeholderPlayer = setting.placeholderPlayer
-            if (item.placeholderOfflinePlayer == null) item.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
-            if (item.smallCapsName == null) item.smallCapsName = setting.smallCapsItemName
-            if (item.smallCapsLore == null) item.smallCapsLore = setting.smallCapsItemLore
-            inventory.setItem(index, item)
+            if (newItem.placeholderPlayer == null) newItem.placeholderPlayer = setting.placeholderPlayer
+            if (newItem.placeholderOfflinePlayer == null) newItem.placeholderOfflinePlayer = setting.placeholderOfflinePlayer
+            if (newItem.smallCapsName == null) newItem.smallCapsName = setting.smallCapsItemName
+            if (newItem.smallCapsLore == null) newItem.smallCapsLore = setting.smallCapsItemLore
+            inventory.setItem(index, newItem)
             handler.itemClickHandler.computeIfAbsent(currentPage) { mutableMapOf() }[index] = { event ->
-                event.item = item
-                item.onClick(event)
+                event.item = newItem
+                newItem.onClick(event)
                 onClick(event)
             }
 
