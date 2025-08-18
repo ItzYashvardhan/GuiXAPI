@@ -33,7 +33,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
     override fun addItem(item: GuiItem, onClick: (InventoryClickEvent) -> Unit): Int {
 
         //This way it can prevent item from overriding
-        val newItem = item.copy()
+        val newItem = item.clone()
 
         fun findFreeSlot(inv: Inventory): Int = (0 until inv.size).firstOrNull { it !in getReservedSlots(inv) && inv.getItem(it) == null } ?: -1
 
@@ -124,7 +124,7 @@ class GuiPageImpl(override val currentPage: Int, override val handler: GUIEventH
 
     override fun setItem(index: Int, item: GuiItem, onClick: ((InventoryClickEvent) -> Unit)): Int {
 
-        val newItem = item.copy()
+        val newItem = item.clone()
 
         if (index < inventory.size) {
             if (newItem.placeholderPlayer == null) newItem.placeholderPlayer = setting.placeholderPlayer
