@@ -163,12 +163,9 @@ data class GuiItem(
             meta.setEnchantmentGlintOverride(glow)
         } catch (_: Throwable) {
             if (glow) {
-                meta.addEnchant(Enchantment.UNBREAKING, 1, true)
-                try {
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
-                } catch (_: Throwable) {
-                    // Ignore
-                }
+                val unbreaking = Enchantment.getByName("UNBREAKING") ?: Enchantment.getByName("DURABILITY")!!
+                meta.addEnchant(unbreaking, 1, true)
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
             }
         }
 
