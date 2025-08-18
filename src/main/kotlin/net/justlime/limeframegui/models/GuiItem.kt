@@ -1,5 +1,6 @@
 package net.justlime.limeframegui.models
 
+import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
@@ -223,5 +224,20 @@ data class GuiItem(
 
         item.itemMeta = meta
         return item
+    }
+
+    /**
+     * Creates a deep copy of the GuiItem.
+     */
+    fun clone(): GuiItem {
+        return this.copy(
+            lore = this.lore.toMutableList(),
+            flags = this.flags.toList(),
+            slotList = this.slotList.toMutableList(),
+            enchantments = this.enchantments.toMap(),
+            customPlaceholder = this.customPlaceholder?.toMap(),
+            attributeModifiers = this.attributeModifiers?.let { HashMultimap.create(it) },
+            itemStack = this.itemStack?.clone()
+        )
     }
 }
