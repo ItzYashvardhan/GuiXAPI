@@ -171,7 +171,7 @@ class SimpleGUICommand() : CommandHandler {
                 simpleGUI().open(it.whoClicked as Player)
             }
 
-            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { name = "Open Pager GUI" }
+            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { name = "Open Pager GUI"; hideToolTip = true }
 
             addItem(pageItem) {
                 pageExample(player)
@@ -263,7 +263,8 @@ class SimpleGUICommand() : CommandHandler {
                 material = Material.GOLD_INGOT, name = "Player: %player_name%", lore = listOf(
                     "<gold>Balance: %vault_eco_balance%", "<white>Location: %player_x%, %player_y%, %player_z%"
                 ), smallCapsName = false, //You can turn On/Off certain small caps for particular item
-                smallCapsLore = false
+                smallCapsLore = false,
+                glow = true
             )
 
             val item3 = GuiItem(

@@ -4,8 +4,9 @@ import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
-import org.bukkit.Bukkit
 import net.justlime.limeframegui.utilities.SkullUtils
+import net.justlime.limeframegui.utilities.ToolTipUtil
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
 import org.bukkit.attribute.Attribute
@@ -17,7 +18,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.SkullMeta
-import java.util.UUID
+import java.util.*
 
 /**
  * Represents an item in a LimeFrame GUI.
@@ -139,15 +140,7 @@ data class GuiItem(
             }
         }
 
-        // Name & lore
-        if (hideToolTip) {
-            try {
-                val method = meta.javaClass.getMethod("setHideTooltip", Boolean::class.javaPrimitiveType)
-                method.invoke(meta, true)
-            } catch (_: Throwable) {
-                // Ignore
-            }
-        }
+        ToolTipUtil.applyHideTooltip(meta, hideToolTip)
 
         meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder) })
         if (lore.isNotEmpty()) {
