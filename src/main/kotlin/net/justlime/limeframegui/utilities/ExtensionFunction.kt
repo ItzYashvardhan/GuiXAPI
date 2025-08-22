@@ -85,19 +85,7 @@ fun ItemStack.toGuiItem(): GuiItem {
     }
 
     return GuiItem(
-        material = type,
-        name = displayName,
-        amount = amount,
-        lore = lore.toMutableList(),
-        glow = glow,
-        flags = flags,
-        customModelData = customModelData,
-        texture = skullTexture,
-        enchantments = enchantments,
-        unbreakable = unbreakable,
-        damage = damage,
-        hideToolTip = hideToolTip,
-        attributeModifiers = attributeModifiers
+        material = type, name = displayName, amount = amount, lore = lore.toMutableList(), glow = glow, flags = flags, customModelData = customModelData, texture = skullTexture, enchantments = enchantments, unbreakable = unbreakable, damage = damage
     )
 }
 
@@ -236,3 +224,11 @@ var InventoryClickEvent.item: GuiItem?
     set(value) {
         clickEventItems[this] = value
     }
+
+/**
+ * Updates the item in the inventory at the clicked slot with the current state of the `item` property
+ * of this [InventoryClickEvent].
+ */
+fun InventoryClickEvent.update() {
+    this.inventory.setItem(this.slot, this.item)
+}

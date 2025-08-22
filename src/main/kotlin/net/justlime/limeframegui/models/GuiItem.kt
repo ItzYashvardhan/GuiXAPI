@@ -1,16 +1,11 @@
 package net.justlime.limeframegui.models
 
-import com.google.common.collect.HashMultimap
-import com.google.common.collect.Multimap
 import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import net.justlime.limeframegui.utilities.SkullUtils
-import net.justlime.limeframegui.utilities.ToolTipUtil
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
-import org.bukkit.attribute.Attribute
-import org.bukkit.attribute.AttributeModifier
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -34,8 +29,6 @@ import java.util.*
  * @param enchantments Map of enchantments and their levels for this item.
  * @param unbreakable Whether the item is unbreakable (no durability loss).
  * @param damage The current damage/durability value of the item (0 = new).
- * @param hideToolTip Used this to completely hide details of item on hover.
- * @param attributeModifiers Attribute modifiers applied to the item (e.g., extra damage, speed boost).
  * @param slot Single slot index to place this item into.
  * @param slotList Multiple slot indices to place the same item in several slots.
  * @param placeholderPlayer Player object used for applying placeholders in displayName and lore.
@@ -48,9 +41,11 @@ data class GuiItem(
 
     // Appearance
     var material: Material = Material.AIR,
-    var name: String? = "",
-    var amount: Int = 1,
+    var name: String = "",
     var lore: List<String> = mutableListOf(),
+    val nameState: (() -> String)? = null,
+    val loreState: (() -> List<String>)? = null,
+    var amount: Int = 1,
     var glow: Boolean = false,
     var flags: List<ItemFlag> = emptyList(),
     var customModelData: Int? = null,
@@ -60,8 +55,6 @@ data class GuiItem(
     var enchantments: Map<Enchantment, Int> = emptyMap(),
     var unbreakable: Boolean = false,
     var damage: Int? = null, // Durability value
-    var hideToolTip: Boolean = false,
-    var attributeModifiers: Multimap<Attribute, AttributeModifier>? = null,
 
     // Placement
     var slot: Int? = null,
@@ -81,6 +74,12 @@ data class GuiItem(
     var onClick: (InventoryClickEvent) -> Unit = {}
 ) {
 
+    val currentName: String
+        get() = nameState?.invoke() ?: name
+
+    val currentLore: List<String>
+        get() = loreState?.invoke() ?: lore
+
     companion object {
         fun air(): GuiItem {
             return GuiItem(name = "", material = Material.AIR)
@@ -96,10 +95,14 @@ data class GuiItem(
             ItemStack(Material.PLAYER_HEAD, amount)
         } else {
             // If no items tack is provided, ensure material is not AIR (unless intended)
-            if (material == Material.AIR && name.isNullOrEmpty() && lore.isEmpty()) {
+            if (material == Material.AIR && name.isEmpty() && currentName.isEmpty() && lore.isEmpty() && currentLore.isEmpty()) {
                 return ItemStack(Material.AIR)
             }
-            ItemStack(material, amount)
+            try {
+                ItemStack(material, amount)
+            } catch (e: Exception) {
+                ItemStack(Material.AIR)
+            }
         }
 
         val meta = item.itemMeta ?: return item
@@ -140,12 +143,10 @@ data class GuiItem(
             }
         }
 
-        ToolTipUtil.applyHideTooltip(meta, hideToolTip)
-
-        meta.setDisplayName(name?.let { FrameColor.applyColor(it, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder) })
-        if (lore.isNotEmpty()) {
+        meta.setDisplayName(FrameColor.applyColor(if (nameState != null) currentName else name, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder))
+        if (lore.isNotEmpty() || currentLore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(lore, placeholderPlayer, placeholderOfflinePlayer, smallCapsLore, customPlaceholder)
+                FrameColor.applyColor(if (loreState != null) currentLore else lore, placeholderPlayer, placeholderOfflinePlayer, smallCapsLore, customPlaceholder)
             } catch (_: Throwable) {
                 lore
             }
@@ -203,15 +204,6 @@ data class GuiItem(
             }
         }
 
-        // Attribute modifiers
-        attributeModifiers?.let {
-            try {
-                meta.attributeModifiers = it
-            } catch (_: Throwable) {
-                // Ignore
-            }
-        }
-
         item.itemMeta = meta
         return item
     }
@@ -221,13 +213,7 @@ data class GuiItem(
      */
     fun clone(): GuiItem {
         return this.copy(
-            lore = this.lore.toMutableList(),
-            flags = this.flags.toList(),
-            slotList = this.slotList.toMutableList(),
-            enchantments = this.enchantments.toMap(),
-            customPlaceholder = this.customPlaceholder?.toMap(),
-            attributeModifiers = this.attributeModifiers?.let { HashMultimap.create(it) },
-            itemStack = this.itemStack?.clone()
+            lore = this.lore.toMutableList(), flags = this.flags.toList(), slotList = this.slotList.toMutableList(), enchantments = this.enchantments.toMap(), customPlaceholder = this.customPlaceholder?.toMap(), itemStack = this.itemStack?.clone()
         )
     }
 }

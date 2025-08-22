@@ -1,28 +1,27 @@
 package net.justlime.limeframegui.example.commands
 
-import net.justlime.limeframegui.enums.ColorType
 import net.justlime.limeframegui.handle.CommandHandler
 import net.justlime.limeframegui.impl.ConfigHandler
 import net.justlime.limeframegui.models.GuiItem
 import net.justlime.limeframegui.type.ChestGUI
 import net.justlime.limeframegui.type.ChestGUI.Companion.GLOBAL_PAGE
-import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.utilities.item
 import net.justlime.limeframegui.utilities.setItem
 import net.justlime.limeframegui.utilities.toGuiItem
+import net.justlime.limeframegui.utilities.update
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.ClickType
 import org.bukkit.inventory.ItemStack
 
 class SimpleGUICommand() : CommandHandler {
     override val permission: String = ""
     override val aliases: List<String> = mutableListOf()
 
-    override fun onCommand(
-        sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): Boolean {
         if (sender !is Player) {
             return true
@@ -56,8 +55,7 @@ class SimpleGUICommand() : CommandHandler {
         return true
     }
 
-    override fun onTabComplete(
-        sender: CommandSender, command: Command, label: String, args: Array<out String?>
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<out String?>
     ): List<String?> {
         val completion = mutableListOf<String>()
         if (args.isNotEmpty()) completion.addAll(listOf("save", "page", "home", "nested", "formatted"))
@@ -159,23 +157,54 @@ class SimpleGUICommand() : CommandHandler {
 
     fun homePage(player: Player) {
 
-        ChestGUI(1, "Home Page") {
+        ChestGUI(1, "hello %player_name%") {
+
+            var value = 0
 
             onClose {
                 it.player.sendMessage("Closing Inventory")
             }
 
-            val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { name = "Open Simple GUI" }
+            onClick { it.isCancelled = true }
+
+            val simpleItem = ItemStack(Material.GRASS_BLOCK).toGuiItem().apply { name = "Open Simple GUI for %player_name%" }
 
             addItem(simpleItem) {
                 simpleGUI().open(it.whoClicked as Player)
             }
 
-            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { name = "Open Pager GUI"; hideToolTip = true }
+            val pageItem = ItemStack(Material.BOOK).toGuiItem().apply { name = "Open Pager GUI"; }
 
+            val staticExtraItem = GuiItem(Material.PAPER, name = "Entered $value", lore = listOf("§aPlayTime: %statistic_time_played%"))
+            val dynamicExtraItem = GuiItem(Material.PAPER, nameState = { "Entered $value" }, loreState = { listOf("§aPlayTime: %statistic_time_played%") })
             addItem(pageItem) {
                 pageExample(player)
             }
+
+            val items = mutableListOf(staticExtraItem, dynamicExtraItem).toList()
+
+            addItem(items) { item, event ->
+                event.whoClicked.sendMessage("You click on ${event.item?.name}")
+                event.whoClicked.sendMessage("You click on ${event.item?.currentName}")
+                when (event.click) {
+                    ClickType.LEFT -> {
+                        value++
+                    }
+
+                    ClickType.RIGHT -> {
+                        value--
+                    }
+
+                    else -> {
+                        value = -1
+                    }
+                }
+
+                event.update()
+
+            }
+
+            //The only difference in between them that static doesn't point to current variable state where dynamic does!
 
         }.open(player)
 
@@ -243,7 +272,6 @@ class SimpleGUICommand() : CommandHandler {
 
     fun formattedPage(player: Player) {
 
-
         ChestGUI(6, "Formatted Page Example") {
 
             setting.smallCapsTitle = true //Enabled SmallCapsFont for title
@@ -263,8 +291,7 @@ class SimpleGUICommand() : CommandHandler {
                 material = Material.GOLD_INGOT, name = "Player: %player_name%", lore = listOf(
                     "<gold>Balance: %vault_eco_balance%", "<white>Location: %player_x%, %player_y%, %player_z%"
                 ), smallCapsName = false, //You can turn On/Off certain small caps for particular item
-                smallCapsLore = false,
-                glow = true
+                smallCapsLore = false, glow = true
             )
 
             val item3 = GuiItem(

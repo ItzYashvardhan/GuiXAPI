@@ -11,15 +11,15 @@ import org.bukkit.inventory.Inventory
  *
  * @param setting The settings for the GUI, including rows, title, and optional player for placeholders.
  */
-class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) {
+class ChestGUI(val setting: GUISetting, private val block: ChestGUIBuilder.() -> Unit = {}) {
     constructor(row: Int, title: String, player: Player? = null, block: ChestGUIBuilder.() -> Unit) : this(GUISetting(row, title, player), block)
 
-    private val guiHandler: GUIEventHandler
-    private val pages: MutableMap<Int, Inventory>
-    val minPageId: Int
-    val maxPageId: Int
+    private lateinit var guiHandler: GUIEventHandler
+    private lateinit var pages: MutableMap<Int, Inventory>
+    var minPageId: Int = 0
+    var maxPageId: Int = 0
 
-    init {
+    fun init() {
         val builder = ChestGUIBuilder(setting)
         builder.apply(block)
         this.guiHandler = builder.build()
@@ -33,6 +33,7 @@ class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) 
      * @param page The page number to open to.
      */
     fun open(page: Int = minPageId) {
+        init()
         setting.placeholderPlayer?.let {
             guiHandler.open(it, page)
         }
@@ -47,6 +48,13 @@ class ChestGUI(val setting: GUISetting, block: ChestGUIBuilder.() -> Unit = {}) 
      * @param page The page number to open to.
      */
     fun open(player: Player, page: Int = minPageId) {
+        if (setting.placeholderPlayer == null && setting.placeholderOfflinePlayer == null) {
+            setting.placeholderPlayer = player
+            init()
+            guiHandler.open(player, page)
+            return
+        }
+        init()
         guiHandler.open(player, page)
     }
 

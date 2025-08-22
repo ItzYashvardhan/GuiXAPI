@@ -28,12 +28,8 @@ object LimeFrameAPI {
         Bukkit.getPluginManager().registerEvents(PluginListener(), plugin)
     }
 
-    fun setKeys(customizer: FrameConfigKeys.() -> Unit) {
-        keys.customizer()
-    }
+    fun setKeys(customizer: FrameConfigKeys.() -> Unit) { keys.customizer() }
 
-    fun getPlugin(): JavaPlugin {
-        return plugin
-    }
+    fun getPlugin(): JavaPlugin { return plugin }
 
 }

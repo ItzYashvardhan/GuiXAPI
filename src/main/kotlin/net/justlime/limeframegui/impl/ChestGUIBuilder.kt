@@ -1,6 +1,5 @@
 package net.justlime.limeframegui.impl
 
-import jdk.nashorn.internal.objects.Global
 import net.justlime.limeframegui.api.LimeFrameAPI
 import net.justlime.limeframegui.enums.ChestGuiActions
 import net.justlime.limeframegui.handle.GUIPage
@@ -13,7 +12,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
-import kotlin.to
 
 /**
  * The Builder is a Blueprint: ChestGuiBuilder is a configuration object.
@@ -140,20 +138,21 @@ class ChestGUIBuilder(val setting: GUISetting) {
 
     // --- Item Management ---
 
-    fun addItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun addItem(item: GuiItem?, onClick: (InventoryClickEvent) -> Unit = {}) {
         val runBlock = to@{
-            if (visibleCondition() && item != null) {
+            if (item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
                 globalPage.addItem(item, onClick)
             }
         }
         if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock()
         else actions += ChestGuiActions.GLOBAL_ITEMS to runBlock
+
     }
 
-    fun addItem(items: List<GuiItem>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         val runBlock = to@{
-            if (items.isEmpty() || !visibleCondition()) return@to
+            if (items.isEmpty()) return@to
             val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
             items.forEach { guiItem ->
@@ -164,9 +163,9 @@ class ChestGUIBuilder(val setting: GUISetting) {
         else actions += ChestGuiActions.GLOBAL_ITEMS to runBlock
     }
 
-    fun setItem(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun setItem(item: GuiItem?, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition() && item != null) {
+            if (item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
                 if (item.slot != null) {
@@ -182,9 +181,9 @@ class ChestGUIBuilder(val setting: GUISetting) {
         }
     }
 
-    fun setItems(item: GuiItem?, visibleCondition: () -> Boolean = { true }, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
+    fun setItems(item: GuiItem?, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition() && item != null) {
+            if (item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
                 if (item.slot != null) {
@@ -201,18 +200,18 @@ class ChestGUIBuilder(val setting: GUISetting) {
         }
     }
 
-    fun setItem(item: GuiItem?, slot: Int?, visibleCondition: () -> Boolean = { true }, onClick: (InventoryClickEvent) -> Unit = {}) {
+    fun setItem(item: GuiItem?, slot: Int?, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition() && slot != null && item != null) {
+            if (slot != null && item != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
                 globalPage.setItem(slot, item, onClick)
             }
         }
     }
 
-    fun setItem(items: GuiItem?, slot: List<Int>, visibleCondition: () -> Boolean = { true }, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun setItem(items: GuiItem?, slot: List<Int>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (visibleCondition() && items != null) {
+            if (items != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
                 slot.forEach { currentSlot ->

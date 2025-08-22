@@ -20,6 +20,7 @@ repositories {
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://jitpack.io")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://repo.viaversion.com") { name = "iaversion-repo" }
 }
 val targetJavaVersion = 8
 
@@ -36,6 +37,7 @@ dependencies {
     compileOnly(libs.adventure.text.minimessage)
     compileOnly(libs.adventure.text.serializer.legacy)
     compileOnly(libs.papi)
+    compileOnly(libs.viaversion)
 
 }
 
@@ -76,7 +78,7 @@ tasks.register<Copy>("shadowJarCopy") {
     description = "Copy shadowJar jar to local test server"
     dependsOn("shadowJar")
     from(tasks.shadowJar.get().outputs.files.singleFile)
-    into("E:/Minecraft/servers/PaperMC-1.16.1/plugins")
+    into("E:/Minecraft/servers/PaperMC-1.21.4/plugins")
 }
 
 

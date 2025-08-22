@@ -70,6 +70,8 @@ interface GUIEventHandler : InventoryHolder {
      *
      * @param player The player to open the GUI for.
      * @param page The ID of the page to open. Defaults to 0.
+     *
+     * @return true if page found else false
      */
-    fun open(player: Player, page: Int = 0)
+    fun open(player: Player, page: Int = 0): Boolean
 }

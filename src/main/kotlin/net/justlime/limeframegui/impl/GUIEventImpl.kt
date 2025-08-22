@@ -1,9 +1,10 @@
 package net.justlime.limeframegui.impl
 
+import net.justlime.limeframegui.color.FrameColor
 import net.justlime.limeframegui.handle.GUIEventHandler
 import net.justlime.limeframegui.models.GUISetting
 import net.justlime.limeframegui.type.ChestGUI
-import net.justlime.limeframegui.color.FrameColor
+import net.justlime.limeframegui.utilities.FrameAdapter
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -47,21 +48,17 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
      * Opens a specific page of the GUI for a player.
      *
      * @param player The player to open the GUI for.
-     * @param page The ID of the page to open. Defaults to 0.
+     * @param page The ID of the page to open. Defaults to minimum page id.
      */
-    override fun open(player: Player, page: Int) {
+    override fun open(player: Player, page: Int): Boolean {
 
-        val inventoryToOpen = pageInventories[page]
-        if (inventoryToOpen == null) {
-            // Optionally send an error message to the player or log it.
-            player.sendMessage("§cError: GUI page $page not found.")
-            return
-        }
+        val inventoryToOpen = pageInventories[page] ?: return false
 
         setCurrentPage(player, page)
 
         // Open the inventory for the player.
         player.openInventory(inventoryToOpen)
+        return true
     }
 
     /**
@@ -142,7 +139,7 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
 
         // Clean up the player's page tracking to prevent memory leaks.
         Bukkit.getScheduler().runTask(plugin, Runnable {
-            val openInventory = getTopInventorySafe(player)
+            val openInventory = FrameAdapter.getTopInventorySafe(player)
             if (!pageInventories.containsValue(openInventory)) {
                 globalCloseHandler?.invoke(event)
                 currentPages.remove(player.name)
@@ -150,25 +147,6 @@ class GUIEventImpl(private val setting: GUISetting) : GUIEventHandler {
             }
         })
 
-    }
-
-    //Reflection Used here to support backward Compatibility
-    private fun getTopInventorySafe(player: Player): Inventory? {
-        return try {
-            //Get Open Inventory Method
-            val getOpenInvMethod = player.javaClass.getMethod("getOpenInventory")
-            val inventoryView = getOpenInvMethod.invoke(player)
-
-            val getTopInvMethod = inventoryView.javaClass.getDeclaredMethod("getTopInventory")
-
-            // bypass package-private restriction
-            getTopInvMethod.isAccessible = true
-
-            getTopInvMethod.invoke(inventoryView) as? Inventory
-        } catch (ex: Throwable) {
-            Bukkit.getLogger().warning("Failed to get top inventory: ${ex.message}")
-            null
-        }
     }
 
 
