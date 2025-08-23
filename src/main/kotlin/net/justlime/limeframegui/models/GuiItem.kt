@@ -43,8 +43,6 @@ data class GuiItem(
     var material: Material = Material.AIR,
     var name: String = "",
     var lore: List<String> = mutableListOf(),
-    val nameState: (() -> String)? = null,
-    val loreState: (() -> List<String>)? = null,
     var amount: Int = 1,
     var glow: Boolean = false,
     var flags: List<ItemFlag> = emptyList(),
@@ -61,6 +59,8 @@ data class GuiItem(
     var slotList: List<Int> = mutableListOf(),
 
     // Placeholder & Dynamic Content
+    val nameState: (() -> String)? = null,
+    val loreState: (() -> List<String>)? = null,
     var customPlaceholder: Map<String, String>? = null,
     var placeholderPlayer: Player? = null,
     var placeholderOfflinePlayer: OfflinePlayer? = null,
