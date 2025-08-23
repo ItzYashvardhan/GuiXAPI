@@ -150,13 +150,13 @@ class ChestGUIBuilder(val setting: GUISetting) {
 
     }
 
-    fun addItem(items: List<GuiItem>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun addItem(items: List<GuiItem>, onClick: ((InventoryClickEvent) -> Unit) = { _ -> {} }) {
         val runBlock = to@{
             if (items.isEmpty()) return@to
             val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
             items.forEach { guiItem ->
-                globalPage.addItem(guiItem) { event -> onClick.invoke(guiItem, event) }
+                globalPage.addItem(guiItem) { event -> onClick.invoke(event) }
             }
         }
         if (currentExecutingAction == ChestGuiActions.GLOBAL_ITEMS) runBlock
@@ -181,25 +181,6 @@ class ChestGUIBuilder(val setting: GUISetting) {
         }
     }
 
-    fun setItems(item: GuiItem?, onClick: (GuiItem, InventoryClickEvent) -> Unit = { _, _ -> {} }) {
-        actions += ChestGuiActions.GLOBAL_ITEMS to {
-            if (item != null) {
-                val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
-
-                if (item.slot != null) {
-                    globalPage.setItem(item.slot!!, item) { event -> onClick.invoke(item, event) }
-                }
-
-                if (item.slotList.isNotEmpty()) {
-                    item.slotList.forEach { slot ->
-                        globalPage.setItem(slot, item) { event -> onClick.invoke(item, event) }
-                    }
-                }
-
-            }
-        }
-    }
-
     fun setItem(item: GuiItem?, slot: Int?, onClick: (InventoryClickEvent) -> Unit = {}) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (slot != null && item != null) {
@@ -209,13 +190,13 @@ class ChestGUIBuilder(val setting: GUISetting) {
         }
     }
 
-    fun setItem(items: GuiItem?, slot: List<Int>, onClick: ((GuiItem, InventoryClickEvent) -> Unit) = { _, _ -> {} }) {
+    fun setItem(items: GuiItem?, slot: List<Int>, onClick: ((InventoryClickEvent) -> Unit) = { _ -> {} }) {
         actions += ChestGuiActions.GLOBAL_ITEMS to {
             if (items != null) {
                 val globalPage = pages[ChestGUI.GLOBAL_PAGE] ?: return@to
 
                 slot.forEach { currentSlot ->
-                    globalPage.setItem(currentSlot, items) { event -> onClick.invoke(items, event) }
+                    globalPage.setItem(currentSlot, items) { event -> onClick.invoke(event) }
                 }
             }
         }

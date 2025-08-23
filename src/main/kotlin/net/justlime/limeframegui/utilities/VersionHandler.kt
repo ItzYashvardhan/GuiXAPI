@@ -82,7 +82,7 @@ object VersionHandler {
      * A helper function to parse a version string (e.g., "1.16.5") into a list of integers.
      * This allows for proper numerical comparison.
      */
-    private fun parseVersion(version: String): List<Int> {
+    fun parseVersion(version: String): List<Int> {
         return version.split('.').mapNotNull { it.toIntOrNull() }
     }
 
@@ -90,7 +90,7 @@ object VersionHandler {
      * Compares two parsed version lists.
      * @return A value < 0 if v1 < v2, 0 if v1 == v2, a value > 0 if v1 > v2.
      */
-    private fun compareVersions(v1: List<Int>, v2: List<Int>): Int {
+    fun compareVersions(v1: List<Int>, v2: List<Int>): Int {
         val size = maxOf(v1.size, v2.size)
         for (i in 0 until size) {
             val part1 = v1.getOrElse(i) { 0 }
