@@ -37,9 +37,6 @@ class ChestGUI(val setting: GUISetting, private val block: ChestGUIBuilder.() ->
         setting.placeholderPlayer?.let {
             guiHandler.open(it, page)
         }
-        setting.placeholderOfflinePlayer?.let {
-            guiHandler.open(it, page)
-        }
     }
 
     /**

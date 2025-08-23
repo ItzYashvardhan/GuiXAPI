@@ -183,7 +183,7 @@ class SimpleGUICommand() : CommandHandler {
 
             val items = mutableListOf(staticExtraItem, dynamicExtraItem).toList()
 
-            addItem(items) { item, event ->
+            addItem(items) { event ->
                 event.whoClicked.sendMessage("You click on ${event.item?.name}")
                 event.whoClicked.sendMessage("You click on ${event.item?.currentName}")
                 when (event.click) {

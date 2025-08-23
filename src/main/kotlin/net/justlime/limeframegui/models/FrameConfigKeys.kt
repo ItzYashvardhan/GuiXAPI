@@ -1,5 +1,7 @@
 package net.justlime.limeframegui.models
 
+import net.justlime.limeframegui.utilities.FontLoader
+
 data class FrameConfigKeys(
     var inventoryTitle: String = "title",
     var inventoryRows: String = "rows",
@@ -19,83 +21,11 @@ data class FrameConfigKeys(
     var slot: String = "slot",
     var slotList: String = "slots",
     var base64Data: String = "data",
-    var smallCapsTitle: String = "font.title",
-    var smallCapsName: String = "font.name",
-    var smallCapsLore: String = "font.lore",
-    var smallCapsFont: Map<String, Map<String, String>> = fontMap,
+    var smallCapsTitle: String = "font-title",
+    var smallCapsName: String = "font-name",
+    var smallCapsLore: String = "font-lore",
+    var smallCapsFont: Map<String, Map<String, String>> = FontLoader.capsFont,
     var smallCaps: Boolean = false,//Set to try to use small caps font.
 )
 
-private val fontMapV_19 = mapOf(
-    "a" to "ᴀ",
-    "b" to "ʙ",
-    "c" to "ᴄ",
-    "d" to "ᴅ",
-    "e" to "ᴇ",
-    "f" to "ꜰ",
-    "g" to "ɢ",
-    "h" to "ʜ",
-    "i" to "ɪ",
-    "j" to "ᴊ",
-    "k" to "ᴋ",
-    "l" to "ʟ",
-    "m" to "ᴍ",
-    "n" to "ɴ",
-    "o" to "ᴏ",
-    "p" to "ᴘ",
-    "q" to "ǫ",
-    "r" to "ʀ",
-    "s" to "s",
-    "t" to "ᴛ",
-    "u" to "ᴜ",
-    "v" to "ᴠ",
-    "w" to "ᴡ",
-    "x" to "x",
-    "y" to "ʏ",
-    "z" to "ᴢ",
-    "0" to "𝟬",
-    "1" to "𝟭",
-    "2" to "𝟮",
-    "3" to "𝟯",
-    "4" to "𝟰",
-    "5" to "𝟱",
-    "6" to "𝟲",
-    "7" to "𝟳",
-    "8" to "𝟴",
-    "9" to "𝟵",
-    "@" to "＠"
-)
-private val fontMapV_8 = mapOf(
-    "a" to "ᴀ",
-    "b" to "ʙ",
-    "c" to "ᴄ",
-    "d" to "ᴅ",
-    "e" to "ᴇ",
-    "f" to "ꜰ",
-    "g" to "ɢ",
-    "h" to "ʜ",
-    "i" to "ɪ",
-    "j" to "ᴊ",
-    "k" to "ᴋ",
-    "l" to "ʟ",
-    "m" to "ᴍ",
-    "n" to "ɴ",
-    "o" to "ᴏ",
-    "p" to "ᴘ",
-    "q" to "ǫ",
-    "r" to "ʀ",
-    "s" to "s",
-    "t" to "ᴛ",
-    "u" to "ᴜ",
-    "v" to "ᴠ",
-    "w" to "ᴡ",
-    "x" to "x",
-    "y" to "ʏ",
-    "z" to "ᴢ",
-)
-
-/**
- * Set Font for specific Minecraft Version. i.e 1.7 will work for from 1.7+ only if higher font version define it will got priority first.
- */
-private val fontMap = mapOf("1.19" to fontMapV_19, "1.7" to fontMapV_8)
 

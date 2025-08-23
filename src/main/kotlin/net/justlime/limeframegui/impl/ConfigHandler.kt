@@ -221,5 +221,4 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         section.set(keys.inventoryTitle, title)
         section.set(keys.inventoryRows, rows)
     }
-
 }
