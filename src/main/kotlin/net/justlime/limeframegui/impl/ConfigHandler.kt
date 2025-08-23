@@ -62,7 +62,11 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
                 amount = getInt(keys.amount, 1),
                 texture = getString(keys.texture),
                 slot = getString(keys.slot)?.toIntOrNull(),
-                slotList = getIntegerList(keys.slotList)
+                slotList = getIntegerList(keys.slotList),
+                unbreakable = getBoolean(keys.unbreakable, false),
+                damage = takeIf { contains(keys.damage) }?.getInt(keys.damage),
+                smallCapsName = takeIf { contains(keys.smallCapsName) }?.getBoolean(keys.smallCapsName),
+                smallCapsLore = takeIf { contains(keys.smallCapsLore) }?.getBoolean(keys.smallCapsLore),
             )
         }
     }
@@ -114,11 +118,10 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
 
     fun loadInventory(path: String): Inventory? {
         val section = config.getConfigurationSection(path) ?: return null
+        // This already correctly reuses the loadInventorySetting method, which is good practice.
+        val setting = loadInventorySetting(path)
 
-        val size = section.getInt(keys.inventoryRows, keys.defaultInventoryRows).coerceIn(1, 6)
-        val title = section.getString(keys.inventoryTitle, keys.defaultInventoryTitle) ?: keys.defaultInventoryTitle
-        val inventory = Bukkit.createInventory(null, size * 9, title)
-
+        val inventory = Bukkit.createInventory(null, setting.rows * 9, setting.title)
         val itemsSection = section.getConfigurationSection(keys.inventoryItemSection) ?: return inventory
 
         for (key in itemsSection.getKeys(false)) {
@@ -135,55 +138,49 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         val section = config.getConfigurationSection(path) ?: return GUISetting(keys.defaultInventoryRows, keys.defaultInventoryTitle)
         val title = section.getString(keys.inventoryTitle, keys.defaultInventoryTitle) ?: keys.defaultInventoryTitle
         val rows = section.getInt(keys.inventoryRows, keys.defaultInventoryRows)
-        return GUISetting(rows, title)
-    }
-
-    fun loadInventoryBase64(path: String, defaultTitle: String = keys.defaultInventoryTitle): Inventory? {
-        val section = config.getConfigurationSection(path) ?: config.createSection(path)
-        val encodedInventory = section.getString(keys.base64Data) ?: return null
-
-        section.getString(keys.inventoryTitle) ?: defaultTitle
-        return FrameConverter.deserializeInventory(encodedInventory)
-    }
-
-    fun saveInventoryBase64(path: String, inventory: Inventory, title: String = keys.defaultInventoryTitle): Boolean {
-
-        val section = config.getConfigurationSection(path) ?: config.createSection(path)
-        val encodedInventory = FrameConverter.serializeInventory(inventory)
-        section.set(keys.base64Data, encodedInventory)
-        section.set(keys.inventoryTitle, title)
-        section.set(keys.inventoryRows, inventory.size / 9)
-
-        return save()
+        val fontTitle = section.getBoolean(keys.smallCapsTitle, LimeFrameAPI.keys.smallCaps)
+        val fontItemName = section.getBoolean(keys.smallCapsName, LimeFrameAPI.keys.smallCaps)
+        val fontItemLore = section.getBoolean(keys.smallCapsLore, LimeFrameAPI.keys.smallCaps)
+        return GUISetting(rows, title, smallCapsTitle = fontTitle, smallCapsItemName = fontItemName, smallCapsItemLore = fontItemLore)
     }
 
     fun saveInventory(path: String, inventory: Inventory, inventoryTitle: String = keys.defaultInventoryTitle): Boolean {
-        val section = config.getConfigurationSection(path) ?: config.createSection(path)
-        section.set(keys.inventoryRows, inventory.size / 9)
-        section.set(keys.inventoryTitle, inventoryTitle)
-
+        val section = getSection(path)
+        writeInventorySettingsToSection(section, inventory.size / 9, inventoryTitle)
         val itemsSection = section.createSection(keys.inventoryItemSection)
-
         for (i in 0 until inventory.size) {
             val itemStack = inventory.getItem(i) ?: continue
             val guiItem = itemStack.toGuiItem()
             saveItem("$path.${keys.inventoryItemSection}.$i", guiItem, itemsSection.createSection(i.toString()))
         }
-
         return save()
     }
 
     fun saveInventorySetting(path: String, setting: GUISetting): Boolean {
-
-        val section = config.getConfigurationSection(path) ?: config.createSection(path)
-        section.set(keys.inventoryTitle, setting.title)
-        section.set(keys.inventoryRows, setting.rows)
-
+        val section = getSection(path)
+        writeInventorySettingsToSection(section, setting.rows, setting.title)
         return save()
     }
 
-    private fun cleanSaveItemMap(itemMap: MutableMap<GuiItem, MutableList<Int>>, itemsSection: ConfigurationSection) {
+    fun saveInventoryBase64(path: String, inventory: Inventory, title: String = keys.defaultInventoryTitle): Boolean {
+        val section = getSection(path)
+        writeInventorySettingsToSection(section, inventory.size / 9, title)
+        val encodedInventory = FrameConverter.serializeInventory(inventory)
+        section.set(keys.base64Data, encodedInventory)
+        return save()
+    }
 
+    fun loadInventoryBase64(path: String): Inventory? {
+        val section = config.getConfigurationSection(path) ?: return null
+        val encodedInventory = section.getString(keys.base64Data) ?: return null
+        val setting = loadInventorySetting(path)
+        val tempInventory = FrameConverter.deserializeInventory(encodedInventory) ?: return null
+        val finalInventory = Bukkit.createInventory(null, setting.rows * 9, setting.title)
+        finalInventory.contents = tempInventory.contents
+        return finalInventory
+    }
+
+    private fun cleanSaveItemMap(itemMap: MutableMap<GuiItem, MutableList<Int>>, itemsSection: ConfigurationSection) {
         for ((item, slots) in itemMap) {
             val key = slots.first().toString()
             val itemSection = itemsSection.createSection(key)
@@ -198,6 +195,10 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         }
     }
 
+    private fun getSection(path: String): ConfigurationSection {
+        return config.getConfigurationSection(path) ?: config.createSection(path)
+    }
+
     private fun writeItemToSection(section: ConfigurationSection, item: GuiItem) {
         section.set(keys.name, item.name)
         section.set(keys.material, item.material.name)
@@ -207,8 +208,18 @@ class ConfigHandler(private val filename: String, private val dataFolder: File =
         section.set(keys.model, item.customModelData)
         section.set(keys.texture, item.texture)
         section.set(keys.amount, item.amount)
+        section.set(keys.unbreakable, item.unbreakable)
+        section.set(keys.damage, item.damage)
+        item.smallCapsName?.let { section.set(keys.smallCapsName, it) }
+        item.smallCapsLore?.let { section.set(keys.smallCapsLore, it) }
+
         item.slot?.let { section.set(keys.slot, it) }
         if (item.slotList.isNotEmpty()) section.set(keys.slotList, item.slotList)
+    }
+
+    private fun writeInventorySettingsToSection(section: ConfigurationSection, rows: Int, title: String) {
+        section.set(keys.inventoryTitle, title)
+        section.set(keys.inventoryRows, rows)
     }
 
 }
