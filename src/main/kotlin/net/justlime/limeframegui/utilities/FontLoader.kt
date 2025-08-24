@@ -111,13 +111,13 @@ object FontLoader {
 
                 val loadedMap = mutableMapOf<String, Map<String, String>>()
                 for (versionKey in config.getKeys(false)) {
-                    val versionSection = config.getConfigurationSection(versionKey) ?: continue
+                    val versionSection = config.getConfigurationSection("$versionKey") ?: continue
                     val characterMap = mutableMapOf<String, String>()
 
                     for (charKey in versionSection.getKeys(false)) {
                         versionSection.getString(charKey)?.let { characterMap[charKey] = it }
                     }
-                    loadedMap[versionKey] = characterMap
+                    loadedMap["1.$versionKey"] = characterMap
                 }
                 capsFont = loadedMap
 
