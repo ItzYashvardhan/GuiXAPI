@@ -19,6 +19,10 @@ class ChestGUI(val setting: GUISetting, private val block: ChestGUIBuilder.() ->
     var minPageId: Int = 0
     var maxPageId: Int = 0
 
+    init {
+        init()
+    }
+
     fun init() {
         val builder = ChestGUIBuilder(setting)
         builder.apply(block)
