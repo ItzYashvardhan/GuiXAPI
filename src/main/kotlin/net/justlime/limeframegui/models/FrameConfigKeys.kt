@@ -1,7 +1,5 @@
 package net.justlime.limeframegui.models
 
-import net.justlime.limeframegui.utilities.FontLoader
-
 data class FrameConfigKeys(
     var inventoryTitle: String = "title",
     var inventoryRows: String = "rows",
@@ -24,7 +22,6 @@ data class FrameConfigKeys(
     var smallCapsTitle: String = "font-title",
     var smallCapsName: String = "font-name",
     var smallCapsLore: String = "font-lore",
-    var smallCapsFont: Map<String, Map<String, String>> = FontLoader.capsFont,
     var smallCaps: Boolean = false,//Set to try to use small caps font.
 )
 

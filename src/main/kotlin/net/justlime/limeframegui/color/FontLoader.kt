@@ -1,4 +1,4 @@
-package net.justlime.limeframegui.utilities
+package net.justlime.limeframegui.color
 
 import net.justlime.limeframegui.api.LimeFrameAPI
 import org.bukkit.configuration.file.YamlConfiguration

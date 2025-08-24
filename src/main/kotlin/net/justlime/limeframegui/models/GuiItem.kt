@@ -1,6 +1,6 @@
 package net.justlime.limeframegui.models
 
-import net.justlime.limeframegui.color.FrameColor
+import net.justlime.limeframegui.color.FontColor
 import net.justlime.limeframegui.utilities.SkullProfileCache
 import net.justlime.limeframegui.utilities.SkullUtils
 import org.bukkit.Bukkit
@@ -143,10 +143,10 @@ data class GuiItem(
             }
         }
 
-        meta.setDisplayName(FrameColor.applyColor(if (nameState != null) currentName else name, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder))
+        meta.setDisplayName(FontColor.applyColor(if (nameState != null) currentName else name, placeholderPlayer, placeholderOfflinePlayer, smallCapsName, customPlaceholder))
         if (lore.isNotEmpty() || currentLore.isNotEmpty()) {
             meta.lore = try {
-                FrameColor.applyColor(if (loreState != null) currentLore else lore, placeholderPlayer, placeholderOfflinePlayer, smallCapsLore, customPlaceholder)
+                FontColor.applyColor(if (loreState != null) currentLore else lore, placeholderPlayer, placeholderOfflinePlayer, smallCapsLore, customPlaceholder)
             } catch (_: Throwable) {
                 lore
             }

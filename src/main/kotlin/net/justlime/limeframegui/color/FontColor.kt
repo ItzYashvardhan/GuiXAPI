@@ -10,7 +10,7 @@ import org.bukkit.ChatColor
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
-object FrameColor {
+object FontColor {
     var miniMessage: IMiniMessage? = null
     private lateinit var colorType: ColorType
 
@@ -96,7 +96,7 @@ object FrameColor {
      * - Obeys <caps> and <no-caps> tags to override the default behavior.
      */
     fun String.toSmallCaps(viewer: Player?, useSmallCaps: Boolean?): String {
-        val fontMaps: Map<String, Map<String, String>> = LimeFrameAPI.keys.smallCapsFont
+        val fontMaps: Map<String, Map<String, String>> = FontLoader.capsFont
         if (fontMaps.isEmpty() && useSmallCaps != true) return this
 
         val bestVersionKey = fontMaps.keys
