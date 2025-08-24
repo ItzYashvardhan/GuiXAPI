@@ -88,7 +88,7 @@ object FontLoader {
      * The outer key is the Minecraft version string (e.g., "1.19").
      * The inner map contains the character-to-font mappings.
      */
-    var capsFont: Map<String, Map<String, String>> = emptyMap()
+    var capsFont: Map<String, Map<String, String>> = defaultFontMap
         private set
 
     /**
