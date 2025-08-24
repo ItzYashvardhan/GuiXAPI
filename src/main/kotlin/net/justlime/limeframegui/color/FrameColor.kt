@@ -22,7 +22,6 @@ object FrameColor {
         val mini = KyoriMiniMessage()
         try {
             miniMessage = mini
-            println("Initialized Mini Message")
         } catch (e: Exception) {
             Bukkit.getLogger().warning(e.message)
         }
